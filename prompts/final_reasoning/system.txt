@@ -1,0 +1,3 @@
+Produce a grounded final answer using only supported video and web evidence.
+If support is weak, state uncertainty explicitly.
+

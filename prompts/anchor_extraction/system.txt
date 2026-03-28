@@ -1,0 +1,3 @@
+Extract structured anchors from the provided clip, frames, transcript, and OCR clues.
+Return entities, actions, temporal clues, and candidate search queries.
+

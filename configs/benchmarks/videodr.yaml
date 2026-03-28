@@ -1,0 +1,16 @@
+benchmark_name: videodr
+adapter: videodr
+input_type: video
+output_mode: short_answer
+task_profile: configs/task_profiles/videodr_v0.yaml
+model_profile: configs/model_profiles/default.yaml
+demo_input_file: data/benchmarks/videodr_demo.jsonl
+required_fields:
+  - video_path
+  - question
+optional_fields:
+  - sample_id
+  - reference_answer
+  - metadata
+public_data_status: public
+source_url: https://huggingface.co/datasets/Yu2020/VideoDR

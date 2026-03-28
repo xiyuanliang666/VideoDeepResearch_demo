@@ -1,0 +1,3 @@
+Bind retrieved evidence back to video anchors.
+State which anchor, which timestamp, and which claim is supported or contradicted.
+

@@ -1,500 +1,520 @@
 # Training-Free Experiment Plan
 
-## 1. 目标
+## 1. Goal
 
-这份计划回答一个核心问题：
+This plan answers one core question:
 
-在**不进行任何训练**的前提下，如何基于当前 `video-grounded deep research framework` 在相关 benchmark 上开展实验、评估效果、发现问题，并进一步提炼可发表的创新点。
+How can we study and improve a `VideoDR-first` method **without training**, while keeping the framework small enough for rapid innovation and broad enough to test across five benchmarks?
 
-这里的重点不是训练模型参数，而是验证：
+The current stage is not about learning new parameters. It is about testing whether the **inference-time method design** is effective.
 
-- 推理时框架设计本身是否有效
-- 哪些模块真正带来收益
-- 系统最常见的失败模式是什么
-- 后续训练或方法改进应该瞄准哪里
-
----
-
-## 2. 核心思路
-
-第一阶段把当前工作定义为一个 **training-free / inference-time framework study**：
-
-- 底层 backbone 固定
-- 不做 SFT / DPO / DRPO
-- 只比较不同 `controller / retrieval / memory / binding` 设计
-- 在相同预算、相同模型、相同输入条件下做公平对比
-
-因此，当前实验的结论不是“模型学到了什么”，而是：
-
-- 这套框架设计本身是否优于 naive pipeline
-- 这些设计是否缓解了 VideoDR 的典型问题
-
----
-
-## 3. 当前阶段能做什么
-
-即使不训练，以下模块也可以直接运行：
-
-- 视频切片
-- 帧提取
-- 音频抽取与 ASR
-- embedding 编码与本地检索
-- anchor extraction
-- web retrieval
-- evidence binding
-- final reasoning
-- LLM-as-a-Judge
-
-因此，第一阶段完全可以做端到端 benchmark 测评。
-
----
-
-## 4. 实验目标拆分
-
-建议将 training-free 实验拆成三个层次。
-
-### 4.1 端到端效果验证
-
-回答：
-
-- 当前框架是否比 naive baseline 更强？
-- 在目标 benchmark 上是否成立？
-
-### 4.2 机制有效性验证
-
-回答：
-
-- `anchor`
-- `local retrieval`
-- `ASR`
-- `memory refresh`
-- `evidence binding`
-
-这些模块分别有没有用？
-
-### 4.3 失败模式归纳
-
-回答：
-
-- 框架最常见失败发生在哪一层？
-- 后续创新点应该从哪里长出来？
-
----
-
-## 5. Benchmark 使用策略
-
-### 5.1 第一层：机制热启动
-
-优先使用：
-
-- `VDR-Bench`
-- `MMSearch-Plus`
-
-可选补充：
-
-- `LIVEVQA`
-
-目标：
-
-- 验证框架是否真正使用视觉与检索
-- 验证 `anchor / retrieval / evidence binding` 是否有效
-- 检查 naive 拼接与结构化 research loop 的差异
-
-### 5.2 第二层：目标任务主实验
-
-主 benchmark：
+The central target is still:
 
 - `VideoDR`
 
-目标：
+The other benchmarks are used as:
 
-- 验证框架是否适用于 `video + web + reasoning`
-- 观察是否缓解：
-  - `goal drift`
-  - `long-horizon` 退化
-  - `video grounding` 失败
+- mechanism warm-up
+- generalization support
+- upper-bound evaluation support
 
-### 5.3 第三层：泛化与输出能力补充
+## 2. Current Experimental Philosophy
 
-使用：
+The current work should be treated as a:
+
+- `training-free`
+- `method-first`
+- `trace-heavy`
+- `failure-driven`
+
+study.
+
+That means:
+
+- backbone models stay fixed
+- no `SFT / DPO / DRPO` yet
+- we compare different pipeline choices under similar budgets
+- we use the resulting traces to discover the most promising innovation points
+
+The main question is not:
+
+- what did the model learn?
+
+The main question is:
+
+- what part of the method core actually improves grounded video-web reasoning?
+
+## 3. Method Scope For The Training-Free Stage
+
+The experiment plan must align with the new compact framework.
+
+The method core includes only:
+
+- `preprocessing`
+- `observation`
+- `anchors`
+- `retrieval`
+- `grounding`
+- `reasoning`
+- `evaluation`
+
+The current stage intentionally does **not** prioritize:
+
+- multi-agent orchestration
+- heavy memory systems
+- training
+- long complex planners
+- large prompt systems
+
+This matters because the first paper-worthy insight will likely come from:
+
+- keyframe selection
+- low-risk observation construction
+- visual anchor building
+- video-web evidence binding
+
+not from scaling the engineering surface area.
+
+## 4. What Training-Free Means Here
+
+Even without training, the system can already test:
+
+- preprocessing quality
+- low-risk observation design
+- anchor usefulness
+- local retrieval usefulness
+- ASR usefulness
+- web retrieval usefulness
+- evidence binding quality
+- answer grounding quality
+
+So the training-free phase is sufficient to answer:
+
+- is the method structure itself useful?
+- which module contributes most?
+- where does the system drift or fail?
+
+## 5. Main Experimental Hypothesis
+
+The training-free plan tests the following hypothesis:
+
+> A `low-risk observation -> anchor -> retrieval -> binding` pipeline is better for VideoDR than a naive `global summary + free web search` pipeline.
+
+This hypothesis decomposes into smaller claims:
+
+- low-risk observations are better than a single global summary
+- anchors are better than unstructured history for controlling search
+- local retrieval before web search improves grounding
+- explicit binding is better than naive concatenation
+
+## 6. Benchmark Strategy
+
+The experiment plan must support five benchmarks, but through `thin adapters`, not a large core.
+
+### 6.1 Mechanism Warm-Up
+
+Benchmarks:
+
+- `MMSearch-Plus`
+- `VDR-Bench`
+
+Purpose:
+
+- verify whether the method core works at all
+- test whether low-risk observations and anchors improve retrieval behavior
+- test whether explicit binding helps over naive multimodal fusion
+
+These are not the final target, but they are the fastest place to see whether the method is structurally promising.
+
+### 6.2 Main Target Validation
+
+Benchmark:
+
+- `VideoDR`
+
+Purpose:
+
+- evaluate the real target setting
+- test whether the method reduces `goal drift`
+- test whether video clues are preserved more effectively
+- test whether explicit video-web grounding improves end-to-end reasoning
+
+This is the benchmark that should define the main claim of the project.
+
+### 6.3 Generalization / Upper Bound
+
+Benchmarks:
 
 - `BrowseComp-VL`
 - `MMDeepResearch-Bench`
 
-目标：
+Purpose:
 
-- 验证 agent / planning 能力是否可迁移
-- 验证 evidence store 是否能支撑长报告输出
+- test whether the method is overly specialized to VideoDR
+- test whether the same evidence pipeline can support longer outputs
 
-说明：
+These are supporting experiments, not the main battlefield of the first stage.
 
-- 这一层不是第一阶段必须完成的主战场
+## 7. How Observation Enters The Experiment Plan
 
----
+Because observation can both help and hurt, the plan treats it as a first-class experimental object.
 
-## 6. 第一阶段建议先跑哪些数据
+Observation should be tested as:
 
-不建议一开始就跑全量 benchmark。更稳的做法是先建立小规模 dev 实验包。
+- `low-risk observation`
+- `global summary`
+- `no observation layer`
 
-### 6.1 小规模热启动集合
+This lets us ask directly:
 
-建议起步样本量：
+- does observation reduce or amplify drift?
+- does question-conditioned observation help?
+- does observation refresh matter?
 
-- `VDR-Bench`: 50 题
-- `MMSearch-Plus`: 50 题
-- `VideoDR`: 30 题
+This is one of the most important design choices in the whole training-free stage.
 
-用途：
+## 8. First-Round Experimental Targets
 
-- 检查 pipeline 是否能稳定跑通
-- 快速收集 trace
-- 观察最典型失败模式
+Do not start with full benchmark runs.
 
-### 6.2 第一轮扩展集合
+Use a small warm-up package first.
 
-当小规模实验稳定后，再扩大到：
+### 8.1 Smoke-Test Package
 
-- `VDR-Bench`: 200 题或官方 test split
-- `MMSearch-Plus`: 100~200 题
-- `VideoDR`: 完整可用 split
+Suggested size:
 
----
-
-## 7. Baseline 设计
-
-第一阶段至少保留以下 baseline。
-
-### 7.1 基础 baseline
-
-- `vision-only`
-  - 仅基于图像或视频作答
-- `vision+asr-only`
-  - 基于视觉与 ASR 文本作答，不使用网页搜索
-- `web-only`
-  - 仅使用网页检索作答
-
-### 7.2 弱多模态 baseline
-
-- `vision+web naive concat`
-  - 视觉总结 + 网页结果直接拼接
-- `general deep research agent + visual pre-summary`
-  - 通用 web research agent，视觉仅做一次性预处理
-
-### 7.3 局部改进 baseline
-
-- `local retrieval + naive reasoning`
-  - 先做本地视频检索与 ASR 文本检索
-  - 但不使用 anchor-centric 控制
-
-### 7.4 主方法
-
-- `your framework`
-  - local retrieval
-  - ASR
-  - anchor extraction
-  - structured memory
-  - evidence binding
-  - final reasoning
-
----
-
-## 8. 控制变量原则
-
-为了让结论可信，第一阶段应尽量固定以下变量：
-
-- 同一个主 MLLM
-- 同一个搜索 API
-- 同样的网页检索预算
-- 同样的最大步数
-- 同样的输入可见范围
-
-这样最终结果才能归因于：
-
-- 框架设计差异
-
-而不是归因于：
-
-- 换了更强模型
-- 检索次数更多
-- 提供了更多上下文
-
----
-
-## 9. 消融实验设计
-
-建议至少做以下消融。
-
-### 9.1 模块级消融
-
-- 去掉 `anchor extraction`
-- 去掉 `local retrieval`
-- 去掉 `ASR / speech clues`
-- 去掉 `anchor refresh / memory reinjection`
-- 去掉 `evidence binding`
-
-### 9.2 策略级消融
-
-- 多步检索改成单步检索
-- 限制最大检索轮数
-- 用全局视频摘要替代 segment-level anchors
-- 关闭 query rewrite
-
-### 9.3 输出级消融
-
-- 去掉 evidence packaging
-- 不输出 citations / evidence chain
-
-这些消融可以帮助回答：
-
-- 到底是哪个模块带来提升？
-- 提升是否来自“真 grounding”，还是只是“搜得更多”？
-
----
-
-## 10. 过程指标
-
-除了 benchmark 最终分数，建议额外记录一组过程指标。
-
-### 10.1 本地检索相关
-
-- `Local Retrieval Recall@K`
-  - 关键 clip 是否被召回
-- `ASR Retrieval Recall@K`
-  - 关键 transcript 段是否被召回
-
-### 10.2 Anchor 相关
-
-- `Anchor Coverage`
-  - gold 相关实体 / 动作 / 时间线索是否被覆盖
-- `Anchor Precision`
-  - 被选中的 anchor 是否真的与问题相关
-
-### 10.3 检索与漂移相关
-
-- `Drift Rate`
-  - query 是否逐渐偏离原始视频线索
-- `Useful Web Retrieval Rate`
-  - 检索到的网页结果中有多少真正进入 evidence
-
-### 10.4 对齐与证据相关
-
-- `Binding Precision`
-  - 网页证据是否正确绑定到视频时间戳
-- `Claim Support Rate`
-  - 最终 claim 是否有足够 evidence 支撑
-
-### 10.5 模态利用增益
-
-- `Video Utilization Gain`
-  - 去掉视频线索后的性能跌幅
-- `ASR Utilization Gain`
-  - 去掉 ASR 线索后的性能跌幅
-- `Web Utilization Gain`
-  - 去掉网页检索后的性能跌幅
-
----
-
-## 11. 需要保存哪些中间结果
-
-为了后续做 failure analysis 和提炼创新点，每次运行都建议保存完整 trace。
-
-至少保存：
-
-- 输入任务
-- 视频 / 图像 / clip 信息
-- transcript
-- active anchors
-- 每一步 query
-- 每一步 local retrieval 结果
-- 每一步 web retrieval 结果
-- rerank 结果
-- evidence binding 结果
-- claim 更新记录
-- final answer / final report
-- tool trace
-- reasoning trace
-- judge input
-- judge output
-
-建议输出格式：
-
-- `json`
-- `jsonl`
-- `csv` 汇总表
-- 关键 case 的 `md` 报告
-
----
-
-## 12. LLM-as-a-Judge 的使用方式
-
-Judge 不是替代 benchmark 指标，而是作为补充评估。
-
-### 12.1 VQA / 短答案
-
-Judge 重点判断：
-
-- 最终答案是否语义正确
-- 是否真正使用了视频证据
-- 是否真正使用了网页证据
-- evidence chain 是否支持答案
-
-### 12.2 长报告
-
-Judge 重点判断：
-
-- 报告是否事实一致
-- 引用是否可信
-- 图文或图证据是否对齐
-- 推理链是否自洽
-- 工具调用链是否支持最终结论
-
-### 12.3 Judge 输入打包
-
-建议统一打包：
-
-- 输入任务
-- 模型输出
-- 参考答案或参考材料
-- 推理链
-- 证据链
-- 工具调用链
-- rubric
-
-这样后续可以做：
-
-- 自动聚合
-- case study
-- 人工抽样复核
-
----
-
-## 13. 第一轮实验应该怎么跑
-
-建议按下面顺序推进。
-
-### 第一步：确认 pipeline 可运行
-
-只跑极小样本：
-
-- `VDR-Bench`: 10
 - `MMSearch-Plus`: 10
+- `VDR-Bench`: 10
 - `VideoDR`: 10
 
-目标：
+Goals:
 
-- 检查数据读取是否正常
-- 检查视频处理与 ASR 是否稳定
-- 检查 search loop 是否能闭环
-- 检查 trace 是否完整保存
+- verify that adapters work
+- verify that the pipeline closes end-to-end
+- verify that traces are complete
+- inspect whether low-risk observations look reasonable
 
-### 第二步：跑小规模开发集
+### 8.2 Development Package
 
-- `VDR-Bench`: 50
+Suggested size:
+
 - `MMSearch-Plus`: 50
+- `VDR-Bench`: 50
 - `VideoDR`: 30
 
-目标：
+Goals:
 
-- 对比 baseline
-- 跑消融
-- 收集失败案例
+- compare baselines
+- run ablations
+- collect stable failure patterns
 
-### 第三步：定位主要失败模式
+### 8.3 Expansion Package
 
-对错误样本分桶，例如：
+After the development package stabilizes:
 
+- `MMSearch-Plus`: 100-200
+- `VDR-Bench`: 100-200
+- `VideoDR`: full available split
+
+Only after this stage should broader generalization experiments become a priority.
+
+## 9. Baseline Design
+
+The baseline set should stay small but diagnostic.
+
+### 9.1 Unimodal Controls
+
+- `vision-only`
+- `vision+asr-only`
+- `web-only`
+
+Purpose:
+
+- test whether the task truly needs multimodal grounding
+- identify how much value ASR adds on its own
+
+### 9.2 Weak Fusion Controls
+
+- `vision+web naive concat`
+- `general deep research agent + visual pre-summary`
+
+Purpose:
+
+- test whether gains come from actual grounding structure rather than just more context
+
+### 9.3 Intermediate Control
+
+- `local retrieval + naive reasoning`
+
+Purpose:
+
+- test whether local retrieval alone is enough
+- separate local recall gains from anchor/binding gains
+
+### 9.4 Main Method
+
+- `low-risk observation + anchors + local retrieval + web retrieval + binding`
+
+This is the proposed method core.
+
+## 10. Main Ablations
+
+The ablation plan should follow the compact framework directly.
+
+### 10.1 Observation Ablations
+
+- replace low-risk observations with `global summary`
+- remove `question-conditioned observation`
+- remove `observation refresh`
+
+### 10.2 Anchor Ablations
+
+- remove `anchor extraction`
+- replace multiple anchors with a single active anchor
+
+### 10.3 Retrieval Ablations
+
+- remove `local retrieval`
+- remove `ASR / speech clues`
+- replace multi-step web search with one-step web search
+
+### 10.4 Grounding Ablations
+
+- remove `evidence binding`
+- keep web results but do not bind them back to time spans
+
+These ablations should reveal whether the method’s benefit comes from:
+
+- better local video access
+- better structured control
+- better evidence grounding
+
+## 11. Control Variables
+
+To make conclusions credible, the training-free stage should keep these fixed whenever possible:
+
+- same main MLLM
+- same search API
+- same retrieval budget
+- same maximum number of steps
+- same benchmark split
+
+Otherwise the results risk being explained by:
+
+- stronger models
+- larger search budgets
+- more context
+
+rather than the method itself.
+
+## 12. Process Metrics
+
+The project should not rely only on final benchmark scores.
+
+It should also record process-level metrics.
+
+### 12.1 Observation Metrics
+
+- `Observation Coverage`
+- `Observation Precision`
+- `Observation Drift Rate`
+
+Questions:
+
+- do observations cover useful clues?
+- do they contain too much irrelevant information?
+- do they already drift before anchor selection?
+
+### 12.2 Anchor Metrics
+
+- `Anchor Coverage`
+- `Anchor Precision`
+- `Active Anchor Stability`
+
+Questions:
+
+- are the selected anchors actually relevant?
+- do they stay useful across steps?
+
+### 12.3 Retrieval Metrics
+
+- `Local Retrieval Recall@K`
+- `ASR Retrieval Recall@K`
+- `Useful Web Retrieval Rate`
+
+### 12.4 Grounding Metrics
+
+- `Binding Precision`
+- `Timestamp Alignment Quality`
+- `Claim Support Rate`
+
+### 12.5 Outcome Metrics
+
+- benchmark task score
+- judge score
+- answer confidence
+- evidence count
+
+## 13. What Must Be Saved Per Run
+
+To support failure analysis and innovation discovery, every run should save:
+
+- task input
+- benchmark metadata
+- observations
+- anchors
+- local retrieval results
+- web retrieval results
+- evidence objects
+- bindings
+- final answer or report
+- judge input
+- judge output
+- error state if the run fails
+
+This is essential because the project is trying to learn from the trajectory, not just from final scores.
+
+## 14. Judge Usage
+
+Judge should be used as a supplement, not a replacement for benchmark metrics.
+
+### 14.1 Short-Answer Tasks
+
+Judge should focus on:
+
+- semantic correctness
+- whether video evidence was really used
+- whether web evidence was really used
+- whether the answer is grounded in the evidence chain
+
+### 14.2 Long-Form Tasks
+
+Judge should focus on:
+
+- factuality
+- citation quality
+- evidence alignment
+- reasoning consistency
+- output structure
+
+### 14.3 Judge Input Packaging
+
+Judge input should include:
+
+- task input
+- model output
+- reference answer or materials
+- evidence chain
+- tool trace
+- rubric
+
+This keeps the evaluation analyzable even when exact-match metrics are insufficient.
+
+## 15. First Experimental Sequence
+
+The recommended order is:
+
+### Step 1: Pipeline Validation
+
+Run the smoke-test package.
+
+Questions:
+
+- do adapters load correctly?
+- do observations look usable?
+- does the pipeline finish?
+- are traces complete?
+
+### Step 2: Baseline Comparison
+
+Run the development package with:
+
+- unimodal controls
+- weak fusion controls
+- main method
+
+Questions:
+
+- does the main method beat naive baselines?
+- does low-risk observation help?
+
+### Step 3: Ablation Study
+
+Run observation, anchor, retrieval, and grounding ablations.
+
+Questions:
+
+- what is the main source of improvement?
+- what is replaceable?
+- what is indispensable?
+
+### Step 4: Failure Taxonomy
+
+Bucket failures into categories such as:
+
+- `bad_observation`
 - `missed_anchor`
 - `bad_local_retrieval`
 - `bad_asr`
 - `bad_web_retrieval`
 - `bad_binding`
 - `goal_drift`
-- `unsupported_final_answer`
+- `unsupported_answer`
 
-### 第四步：形成第一版结论
+### Step 5: Innovation Extraction
 
-回答以下问题：
+Turn recurring failure modes into method candidates.
 
-- 框架是否优于 naive baseline？
-- 哪个模块最关键？
-- 最常见的失败发生在哪一层？
-- 哪些问题必须靠训练解决，哪些问题可以继续靠推理时设计解决？
+Examples:
 
----
+- too much irrelevant observation
+  - better observation pruning
+- missed key visual clue
+  - better keyframe / event selection
+- anchor becomes stale after search
+  - anchor refresh or re-grounding
+- web evidence cannot be aligned back to video
+  - timestamp-aware binding verifier
 
-## 14. 如何从实验中提炼创新点
+## 16. How Innovation Should Emerge
 
-创新点最好不是预设出来的，而是从 trace 与失败模式中“长出来”。
+The training-free stage is not only for benchmarking. It is the main discovery engine for innovation.
 
-### 14.1 如果主要失败是 drift
+The expected pattern is:
 
-可能的创新方向：
+- run traces
+- inspect failures
+- identify which layer fails first
+- turn that failure into a sharper method proposal
 
-- `anchor refresh`
-- `memory reinjection`
-- `anti-drift controller`
+This is especially important because the likely innovation points are still open:
 
-### 14.2 如果主要失败是本地召回差
+- keyframe selection
+- low-risk observation construction
+- visual anchor construction
+- temporal evidence binding
 
-可能的创新方向：
+The experiments should therefore be designed to make these differences visible.
 
-- `clip + ASR fusion retrieval`
-- `better local retrieval routing`
+## 17. Expected Outputs Of The Training-Free Stage
 
-### 14.3 如果主要失败是网页证据绑不准
+By the end of the first stage, the project should produce:
 
-可能的创新方向：
+- a stable small-core benchmark runner
+- baseline comparison tables
+- ablation tables
+- process-metric tables
+- failure taxonomy
+- judge-based qualitative cases
+- a ranked list of next-step innovation candidates
 
-- `cross-modal evidence verifier`
-- `timestamp-aware binding`
+These outputs are enough to support:
 
-### 14.4 如果主要失败是最终答案看似合理但证据不足
+- method iteration
+- proposal refinement
+- experimental planning for a paper
+- later transition into training
 
-可能的创新方向：
+## 18. One-Sentence Summary
 
-- `judgeable evidence packaging`
-- `claim support validation`
-
-也就是说：
-
-- 第一阶段实验的目标不是直接拿 SOTA
-- 而是找到“哪一个模块最值得变成论文主创新”
-
----
-
-## 15. 第一阶段最值得回答的四个问题
-
-如果现在就开始跑实验，最重要的不是“最终分数最高多少”，而是先回答：
-
-1. 这套 framework 能不能稳定跑完？
-2. 它比 naive baseline 有没有稳定收益？
-3. 收益主要来自哪个模块？
-4. 最常见的失败模式是什么？
-
-这四个问题回答清楚以后，后面无论是继续做 training-free framework paper，还是进入 SFT / DPO / DRPO，都有明确方向。
-
----
-
-## 16. 当前阶段的预期产出
-
-第一阶段建议形成以下产物：
-
-- benchmark 小规模结果表
-- baseline 对比表
-- ablation 对比表
-- 过程指标统计表
-- failure case taxonomy
-- judge 评估样例
-- 下一阶段创新点候选列表
-
-这些内容本身就足以支撑：
-
-- proposal 修订
-- 方法迭代
-- paper 里的实验设计章节
-
----
-
-## 17. 一句话总结
-
-在不训练的前提下，当前框架依然可以通过 **固定 backbone + 对比不同 inference-time pipeline** 的方式在 benchmark 上开展系统实验；第一阶段重点不是追求最终最强结果，而是通过端到端结果、消融、过程指标和失败分析，验证框架是否有效，并从中提炼真正值得进一步训练或强化的方法创新点。
+The training-free stage should be a `VideoDR-first` method study built around `low-risk observations`, `anchor-driven retrieval`, and `explicit evidence binding`, using small but carefully structured experiments to identify the most promising innovation point before expanding the engineering scope or adding training.

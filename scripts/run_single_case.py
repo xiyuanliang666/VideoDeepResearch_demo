@@ -1,0 +1,74 @@
+"""Run a single sample through the compact method core."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from src.core.pipeline import run_pipeline
+from src.schemas import Sample
+from src.tools.cache_tools import save_json
+from src.tools.config_tools import load_config
+from src.tools.io_tools import build_run_dir, build_run_id, write_text, write_trace
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run a single sample with the compact VideoDR-first core.")
+    parser.add_argument("--video-path", required=True, help="Path to the input video.")
+    parser.add_argument("--question", required=True, help="Question to answer.")
+    parser.add_argument(
+        "--task-profile",
+        default="configs/task_profiles/videodr_v0.yaml",
+        help="Path to the task profile yaml.",
+    )
+    parser.add_argument(
+        "--model-profile",
+        default="configs/model_profiles/default.yaml",
+        help="Path to the model profile yaml.",
+    )
+    parser.add_argument(
+        "--run-id",
+        default="",
+        help="Optional run id. If omitted, one will be generated.",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    task_profile = load_config(args.task_profile)
+    model_profile = load_config(args.model_profile)
+
+    run_id = args.run_id or build_run_id("single_case")
+    run_dir = build_run_dir("outputs/traces", run_id)
+
+    sample = Sample(
+        sample_id=run_id,
+        benchmark_name="single_case",
+        input_type="video",
+        media_paths=[str(Path(args.video_path))],
+        question=args.question,
+        output_mode=str(task_profile.get("output_mode", "short_answer")),
+        metadata={},
+    )
+
+    result = run_pipeline(
+        sample=sample,
+        task_profile=task_profile,
+        model_profile=model_profile,
+    )
+
+    write_trace(run_dir, "trace", result)
+    save_json(result, Path("outputs/answers") / f"{run_id}.json")
+    write_text(Path(run_dir) / "question.txt", args.question)
+
+    print(f"run_id={run_id}")
+    print(f"trace_dir={run_dir}")
+    print(f"answer_file=outputs/answers/{run_id}.json")
+    print(f"status={result['status']}")
+    print(f"clips={len(result['clips'])}")
+    print(f"observations={len(result['observations'])}")
+
+
+if __name__ == "__main__":
+    main()

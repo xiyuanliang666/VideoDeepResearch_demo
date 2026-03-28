@@ -1,0 +1,8 @@
+openai
+tavily-python
+transformers
+accelerate
+torch
+pydantic
+pyyaml
+

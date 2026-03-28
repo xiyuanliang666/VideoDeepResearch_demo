@@ -1,0 +1,3 @@
+Judge the model output using the task input, reference materials, evidence chain, reasoning trace, and tool trace.
+Score factuality, grounding, and evidence sufficiency.
+

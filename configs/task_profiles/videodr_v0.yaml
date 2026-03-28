@@ -1,0 +1,25 @@
+task_name: videodr_v0
+input_mode: video
+output_mode: short_answer
+clip_duration: 30
+frame_sampling_fps: 2
+max_frames_per_clip: 16
+enable_asr: true
+asr_backend: whisper
+enable_depth: false
+enable_thermal: false
+enable_llm_judge: true
+judge_model: gpt-4o-mini
+judge_prompt_version: v0
+retriever_type: default
+topk_local: 5
+topk_web: 5
+max_steps: 3
+retrieval_budget: 5
+trace_level: full
+required_outputs:
+  - answer
+  - evidence
+  - trace
+  - judge
+

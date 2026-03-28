@@ -1,0 +1,6 @@
+vision_model: glm4v
+text_model: bge_m3
+judge_model: gpt-4o-mini
+search_api: tavily
+asr_backend: whisper
+

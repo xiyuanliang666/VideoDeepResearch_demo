@@ -1,0 +1,17 @@
+benchmark_name: browsecomp_vl
+adapter: browsecomp_vl
+input_type: image_set
+output_mode: short_answer
+task_profile: configs/task_profiles/vdr_bench_v0.yaml
+model_profile: configs/model_profiles/default.yaml
+demo_input_file: data/benchmarks/browsecomp_vl_demo.jsonl
+required_fields:
+  - media_paths
+  - question
+optional_fields:
+  - sample_id
+  - reference_answer
+  - metadata
+public_data_status: unclear
+source_url: https://huggingface.co/papers/2508.05748
+notes: official standalone dataset entry still needs confirmation
