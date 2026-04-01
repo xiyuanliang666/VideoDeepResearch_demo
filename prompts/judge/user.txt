@@ -1,0 +1,9 @@
+Evaluate the run and return strict JSON with keys:
+- overall_score: float in [0,1]
+- verdict: "pass" | "weak_pass" | "fail"
+- explanation: string
+- dimension_scores: object with numeric values
+- failure_tags: list[str]
+
+Judge input JSON:
+{judge_input_json}

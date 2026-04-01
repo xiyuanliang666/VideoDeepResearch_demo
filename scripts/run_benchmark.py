@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 import argparse
+import re
+import sys
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.adapters import get_adapter, list_adapters
 from src.evaluation.aggregate import build_comparison_row, summarize_results, write_comparison_csv
 from src.core.pipeline import run_pipeline
 from src.tools.cache_tools import load_json, load_jsonl, save_json, save_jsonl
 from src.tools.config_tools import load_config
+from src.tools.env_tools import load_env_file
 from src.tools.io_tools import build_run_dir, build_run_id, write_trace
 
 
@@ -30,6 +37,11 @@ def parse_args():
         help=f"Adapter name. Available: {', '.join(list_adapters())}",
     )
     parser.add_argument("--mode", default="framework")
+    parser.add_argument(
+        "--experiment-config",
+        default="",
+        help="Optional experiment yaml config, e.g. configs/experiment.yaml",
+    )
     parser.add_argument("--limit", type=int, default=0, help="Optional sample limit. 0 means no limit.")
     parser.add_argument("--run-id", default="", help="Optional benchmark run id.")
     return parser.parse_args()
@@ -76,27 +88,22 @@ def build_result_row(result: dict, sample: dict, sample_id: str, run_id: str, be
     }
 
 
-def main():
-    args = parse_args()
-    benchmark_config = load_config(args.benchmark_config) if args.benchmark_config else {}
+def _model_tag(name: str) -> str:
+    tag = re.sub(r"[^a-zA-Z0-9]+", "_", name.strip())
+    tag = re.sub(r"_+", "_", tag).strip("_")
+    return tag[:48] if tag else "model"
 
-    task_profile_path = benchmark_config.get("task_profile", args.task_profile)
-    model_profile_path = benchmark_config.get("model_profile", args.model_profile)
-    input_file = args.input_file or benchmark_config.get("demo_input_file") or benchmark_config.get("input_file") or ""
-    if not input_file:
-        raise ValueError("An input file is required. Pass --input-file or provide it in --benchmark-config.")
 
-    benchmark_name = benchmark_config.get("benchmark_name", args.benchmark_name)
-    adapter_name = args.adapter or benchmark_config.get("adapter") or benchmark_name
-
-    task_profile = load_config(task_profile_path)
-    model_profile = load_config(model_profile_path)
-    samples = load_samples(input_file)
-    adapter = get_adapter(adapter_name)
-    if args.limit > 0:
-        samples = samples[: args.limit]
-
-    run_id = args.run_id or build_run_id(benchmark_name)
+def _run_once(
+    *,
+    samples: list[dict],
+    adapter,
+    task_profile: dict,
+    model_profile: dict,
+    benchmark_name: str,
+    mode: str,
+    run_id: str,
+) -> dict:
     trace_root = Path(build_run_dir("outputs/traces", run_id))
     eval_dir = Path(build_run_dir("outputs/eval", run_id))
     answers_path = Path("outputs/answers") / f"{run_id}.jsonl"
@@ -127,7 +134,7 @@ def main():
                 sample_id=sample_id,
                 run_id=run_id,
                 benchmark_name=benchmark_name,
-                mode=args.mode,
+                mode=mode,
             )
         except Exception as exc:  # noqa: BLE001
             sample_trace_dir = trace_root / sample_id
@@ -145,7 +152,7 @@ def main():
             result_row = {
                 "run_id": run_id,
                 "benchmark_name": benchmark_name,
-                "mode": args.mode,
+                "mode": mode,
                 "sample_id": sample_id,
                 "video_path": sample.get("video_path") or sample.get("video") or sample.get("media_path") or "",
                 "question": sample.get("question") or sample.get("query") or sample.get("prompt") or "",
@@ -179,20 +186,92 @@ def main():
 
     save_jsonl(answer_rows, answers_path)
     save_jsonl(result_rows, results_path)
-
     summary = summarize_results(result_rows)
     save_json(summary, summary_path)
     write_comparison_csv([build_comparison_row(summary)], comparison_path)
+    return {
+        "run_id": run_id,
+        "answers_path": answers_path,
+        "results_path": results_path,
+        "summary_path": summary_path,
+        "comparison_path": comparison_path,
+        "samples": len(result_rows),
+    }
 
-    print(f"run_id={run_id}")
-    print(f"benchmark_name={benchmark_name}")
-    print(f"adapter={adapter_name}")
-    print(f"input_file={input_file}")
-    print(f"samples={len(result_rows)}")
-    print(f"answers_file={answers_path}")
-    print(f"results_file={results_path}")
-    print(f"summary_file={summary_path}")
-    print(f"comparison_file={comparison_path}")
+
+def main():
+    load_env_file(".env")
+    args = parse_args()
+    benchmark_config = load_config(args.benchmark_config) if args.benchmark_config else {}
+
+    task_profile_path = benchmark_config.get("task_profile", args.task_profile)
+    model_profile_path = benchmark_config.get("model_profile", args.model_profile)
+    input_file = args.input_file or benchmark_config.get("input_file") or benchmark_config.get("demo_input_file") or ""
+    if not input_file:
+        raise ValueError("An input file is required. Pass --input-file or provide it in --benchmark-config.")
+
+    benchmark_name = benchmark_config.get("benchmark_name", args.benchmark_name)
+    adapter_name = args.adapter or benchmark_config.get("adapter") or benchmark_name
+
+    task_profile = load_config(task_profile_path)
+    model_profile = load_config(model_profile_path)
+    samples = load_samples(input_file)
+    adapter = get_adapter(adapter_name)
+    if args.limit > 0:
+        samples = samples[: args.limit]
+
+    exp_cfg = load_config(args.experiment_config) if args.experiment_config else {}
+    reasoning_models = exp_cfg.get("reasoning_models", []) if isinstance(exp_cfg, dict) else []
+    if not isinstance(reasoning_models, list):
+        reasoning_models = []
+    reasoning_models = [str(x).strip() for x in reasoning_models if str(x).strip()]
+
+    if not reasoning_models:
+        run_id = args.run_id or build_run_id(benchmark_name)
+        result = _run_once(
+            samples=samples,
+            adapter=adapter,
+            task_profile=task_profile,
+            model_profile=model_profile,
+            benchmark_name=benchmark_name,
+            mode=args.mode,
+            run_id=run_id,
+        )
+        print(f"run_id={result['run_id']}")
+        print(f"benchmark_name={benchmark_name}")
+        print(f"adapter={adapter_name}")
+        print(f"input_file={input_file}")
+        print(f"samples={result['samples']}")
+        print(f"answers_file={result['answers_path']}")
+        print(f"results_file={result['results_path']}")
+        print(f"summary_file={result['summary_path']}")
+        print(f"comparison_file={result['comparison_path']}")
+        return
+
+    for model_name in reasoning_models:
+        run_model_profile = dict(model_profile)
+        run_model_profile["reasoning_model"] = model_name
+        tag = _model_tag(model_name)
+        run_id = f"{args.run_id}_{tag}" if args.run_id else build_run_id(f"{benchmark_name}_{tag}")
+        result = _run_once(
+            samples=samples,
+            adapter=adapter,
+            task_profile=task_profile,
+            model_profile=run_model_profile,
+            benchmark_name=benchmark_name,
+            mode=f"{args.mode}:{tag}",
+            run_id=run_id,
+        )
+        print(f"run_id={result['run_id']}")
+        print(f"benchmark_name={benchmark_name}")
+        print(f"adapter={adapter_name}")
+        print(f"reasoning_model={model_name}")
+        print(f"input_file={input_file}")
+        print(f"samples={result['samples']}")
+        print(f"answers_file={result['answers_path']}")
+        print(f"results_file={result['results_path']}")
+        print(f"summary_file={result['summary_path']}")
+        print(f"comparison_file={result['comparison_path']}")
 
 
 if __name__ == "__main__":

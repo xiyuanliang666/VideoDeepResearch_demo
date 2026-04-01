@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import urllib.error
-import urllib.request
 
 from src.schemas import Anchor, ObservationUnit, QueryUnit, RetrievalCandidate
 
@@ -23,8 +21,15 @@ def _overlap_score(query_tokens: set[str], candidate_tokens: list[str]) -> float
     return len(overlap) / max(len(query_tokens), 1)
 
 
-def _fallback_candidates(query_unit: QueryUnit, query: str, topk: int) -> list[RetrievalCandidate]:
+def _fallback_candidates(
+    query_unit: QueryUnit,
+    query: str,
+    topk: int,
+    *,
+    reason: str = "",
+) -> list[RetrievalCandidate]:
     normalized_query = " ".join(query.split())[:120]
+    fallback_reason = reason.strip()[:240] or "live web search unavailable"
     return [
         RetrievalCandidate(
             candidate_id=f"web_fallback_{index:04d}",
@@ -40,36 +45,81 @@ def _fallback_candidates(query_unit: QueryUnit, query: str, topk: int) -> list[R
                     "placeholder candidate preserved for pipeline debugging."
                 ),
                 "url": "",
+                "fallback_reason": fallback_reason,
             },
             retriever_name="fallback_web_retriever",
             normalized_score=max(0.05 - index * 0.01, 0.01),
             keep_label="weak_keep",
-            keep_reason="Fallback candidate generated because no live web search is available.",
+            keep_reason=f"Fallback candidate generated: {fallback_reason}",
         )
         for index in range(max(topk, 1))
     ]
 
 
 def _search_tavily(query: str, api_key: str, topk: int) -> list[dict]:
-    payload = {
-        "query": query,
-        "max_results": topk,
-        "search_depth": "basic",
-        "include_answer": False,
-        "include_raw_content": False,
-    }
-    request = urllib.request.Request(
-        url="https://api.tavily.com/search",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(request, timeout=20) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    return data.get("results", [])
+    try:
+        from tavily import TavilyClient
+    except ModuleNotFoundError as exc:  # noqa: F401
+        raise RuntimeError("tavily-python is not installed") from exc
+
+    client = TavilyClient(api_key=api_key)
+    data = client.qna_search(query=query)
+
+    if isinstance(data, list):
+        return [item for item in data if isinstance(item, dict)][:topk]
+
+    if isinstance(data, dict):
+        if isinstance(data.get("results"), list):
+            return [item for item in data["results"] if isinstance(item, dict)][:topk]
+
+        answer_text = str(data.get("answer") or data.get("content") or "").strip()
+        sources = data.get("sources") if isinstance(data.get("sources"), list) else []
+        if sources:
+            results: list[dict] = []
+            for idx, source in enumerate(sources[:topk], start=1):
+                if isinstance(source, dict):
+                    url = str(source.get("url") or source.get("source") or "").strip()
+                    title = str(source.get("title") or f"Tavily source {idx}").strip()
+                    content = str(source.get("content") or answer_text).strip()
+                else:
+                    url = str(source).strip()
+                    title = f"Tavily source {idx}"
+                    content = answer_text
+                results.append(
+                    {
+                        "url": url,
+                        "title": title,
+                        "content": content,
+                        "score": 1.0,
+                    }
+                )
+            return results
+
+        if answer_text:
+            return [
+                {
+                    "url": "",
+                    "title": "Tavily QnA",
+                    "content": answer_text,
+                    "score": 1.0,
+                }
+            ]
+        return []
+
+    if isinstance(data, str):
+        answer_text = data.strip()
+        if not answer_text:
+            return []
+        return [
+            {
+                "url": "",
+                "title": "Tavily QnA",
+                "content": answer_text,
+                "score": 1.0,
+            }
+        ]
+
+    return []
 
 
 def run_local_retrieval(
@@ -151,12 +201,22 @@ def run_web_retrieval(
 
     api_key = os.getenv("TAVILY_API_KEY", "").strip()
     if not api_key:
-        return query_unit, _fallback_candidates(query_unit, query_text, topk)
+        return query_unit, _fallback_candidates(
+            query_unit,
+            query_text,
+            topk,
+            reason="missing TAVILY_API_KEY",
+        )
 
     try:
         raw_results = _search_tavily(query_text, api_key=api_key, topk=topk)
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError):
-        return query_unit, _fallback_candidates(query_unit, query_text, topk)
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, RuntimeError, Exception) as exc:
+        return query_unit, _fallback_candidates(
+            query_unit,
+            query_text,
+            topk,
+            reason=f"tavily request failed: {type(exc).__name__}: {exc}",
+        )
 
     query_tokens = set(_tokenize(query_text))
     candidates: list[RetrievalCandidate] = []
@@ -191,5 +251,10 @@ def run_web_retrieval(
             )
         )
     if not candidates:
-        return query_unit, _fallback_candidates(query_unit, query_text, topk)
+        return query_unit, _fallback_candidates(
+            query_unit,
+            query_text,
+            topk,
+            reason="tavily returned no results",
+        )
     return query_unit, candidates

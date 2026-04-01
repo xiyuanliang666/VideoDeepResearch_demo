@@ -1,0 +1,11 @@
+Question:
+{question}
+
+Analyze the provided media and return strict JSON with keys:
+- scene_clues: list[str]
+- speech_clues: list[str]
+- candidate_entities: list[str]
+- candidate_actions: list[str]
+- confidence: float in [0, 1]
+
+Keep each list concise (<= 5).

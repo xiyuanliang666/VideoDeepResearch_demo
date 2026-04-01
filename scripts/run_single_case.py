@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.core.pipeline import run_pipeline
 from src.schemas import Sample
 from src.tools.cache_tools import save_json
 from src.tools.config_tools import load_config
+from src.tools.env_tools import load_env_file
 from src.tools.io_tools import build_run_dir, build_run_id, write_text, write_trace
 
 
@@ -35,6 +41,7 @@ def parse_args():
 
 
 def main():
+    load_env_file(".env")
     args = parse_args()
     task_profile = load_config(args.task_profile)
     model_profile = load_config(args.model_profile)

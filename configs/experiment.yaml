@@ -1,0 +1,4 @@
+reasoning_models:
+  - openai/gpt-4.1
+  - anthropic/claude-3-7-sonnet
+  - google/gemini-2.5-pro

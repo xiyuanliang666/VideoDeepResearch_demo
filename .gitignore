@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+outputs/
+data/clips/
+data/dense_frames/
+data/transcripts/
+data/audio/

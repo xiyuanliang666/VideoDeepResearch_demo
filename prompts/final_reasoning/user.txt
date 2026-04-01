@@ -1,0 +1,13 @@
+Question:
+{question}
+
+Evidence store summary JSON:
+{evidence_summary_json}
+
+Return strict JSON:
+{
+  "final_answer": "...",
+  "confidence": 0.0,
+  "supporting_video_evidence": ["..."],
+  "supporting_web_evidence": ["..."]
+}

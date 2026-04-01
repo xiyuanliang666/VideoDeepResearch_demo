@@ -1,6 +1,8 @@
-vision_model: glm4v
+# Optional static fallback profile.
+# Runtime environment variables in .env are primary defaults.
+reasoning_model: ""
+vision_model: ""
+judge_model: ""
 text_model: bge_m3
-judge_model: gpt-4o-mini
 search_api: tavily
 asr_backend: whisper
-

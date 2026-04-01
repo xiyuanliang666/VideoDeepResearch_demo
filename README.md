@@ -14,6 +14,7 @@ Current scope:
 - evidence binding
 - final answer generation
 - heuristic Judge output for experiment tracing
+- optional online multimodal observation enhancement (provider-routed)
 
 Related docs:
 
@@ -50,20 +51,36 @@ Create a Python environment first, then install:
 pip install -r requirements.txt
 ```
 
-If you want live web retrieval, set environment variables from `.env.example`.
+If you want live online inference + web retrieval, create `.env` from `.env.example`.
 
 Example:
 
 ```bash
-export TAVILY_API_KEY=your_key
-export OPENAI_API_KEY=your_key
+cp .env.example .env
+# then edit .env with your real keys/base_url/model
 ```
+
+Prompts for multimodal observation are externalized under:
+
+- `prompts/observation_multimodal/system.txt`
+- `prompts/observation_multimodal/user.txt`
+
+Recommended config pattern:
+
+- Use one unified gateway: `LLM_API_KEY`, `LLM_BASE_URL`
+- Route runtime roles by model name only:
+  - `REASONING_MODEL`
+  - `JUDGE_MODEL`
+  - `VISION_MODEL`
+- `LLM_MODEL` is an optional generic fallback
 
 Notes:
 
 - `ffmpeg` / `ffprobe` are recommended for real video slicing and frame extraction.
 - If `ffmpeg` is missing, the current v0 pipeline will fall back to a single-clip mode.
 - If `TAVILY_API_KEY` is missing, web retrieval will return structured fallback candidates so the pipeline can still be debugged.
+- If `LLM_API_KEY` or `LLM_BASE_URL` is missing, online inference automatically falls back to local heuristic logic.
+- Judge supports online mode via `ENABLE_ONLINE_JUDGE=true`. If online judge fails, it falls back to local heuristic judge.
 
 ## Run A Single Sample
 
@@ -153,12 +170,22 @@ python3 scripts/run_benchmark.py \
   --limit 1
 ```
 
+Experiment sweep example (compare multiple reasoning models from `configs/experiment.yaml`):
+
+```bash
+python3 scripts/run_benchmark.py \
+  --benchmark-config configs/benchmarks/videodr.yaml \
+  --experiment-config configs/experiment.yaml \
+  --limit 1
+```
+
 Useful arguments:
 
 - `--benchmark-name`: label used in output summaries
 - `--adapter`: selects which benchmark adapter normalizes the raw samples
 - `--benchmark-config`: loads benchmark-specific defaults such as adapter and demo input file
 - `--mode`: label for baseline / method comparison, such as `framework`, `web_only`, `naive_concat`
+- `--experiment-config`: optional yaml with `reasoning_models` list for batch comparison
 - `--limit`: run only the first N samples
 - `--run-id`: manually set the benchmark run id
 
@@ -188,6 +215,14 @@ These files are not the full official datasets. They are runnable schema example
 - validate each adapter
 - validate the benchmark runner
 - keep input formats consistent before downloading the full datasets
+
+If your datasets are already downloaded under `/mnt/sda/Datasets`, generate runnable benchmark jsonl files with:
+
+```bash
+python3 scripts/prepare_benchmark_inputs.py
+```
+
+Generated files are written to `data/benchmarks/real/`, and benchmark configs can point `input_file` to these real inputs.
 
 ## Re-Summarize Existing Results
 

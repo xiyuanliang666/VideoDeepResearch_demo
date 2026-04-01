@@ -4,9 +4,42 @@ from __future__ import annotations
 
 from src.evaluation.judge import run_judge
 from src.schemas import FinalAnswerBundle, JudgeInputBundle
+from src.tools.reasoning_tools import get_last_reasoning_error, run_online_reasoning
 
 
-def build_final_answer(question: str, evidence_store):
+def build_final_answer(question: str, evidence_store, model_profile: dict | None = None):
+    online = run_online_reasoning(
+        question=question,
+        evidence_store=evidence_store.to_dict() if hasattr(evidence_store, "to_dict") else dict(evidence_store),
+        model_profile=model_profile,
+        max_tokens=800,
+    )
+    reasoning_error = get_last_reasoning_error()
+    reasoning_trace_refs = [f"online_reasoning_error:{reasoning_error}"] if reasoning_error else []
+    if isinstance(online, dict):
+        final_answer_text = str(online.get("final_answer", "")).strip()
+        if final_answer_text:
+            try:
+                confidence = float(online.get("confidence", 0.0))
+            except (TypeError, ValueError):
+                confidence = 0.0
+            video_refs = online.get("supporting_video_evidence", [])
+            web_refs = online.get("supporting_web_evidence", [])
+            if not isinstance(video_refs, list):
+                video_refs = []
+            if not isinstance(web_refs, list):
+                web_refs = []
+            return FinalAnswerBundle(
+                task_id=evidence_store.store_id,
+                question=question,
+                final_answer=final_answer_text,
+                confidence=max(0.0, min(1.0, confidence)),
+                supporting_video_evidence=[str(x) for x in video_refs],
+                supporting_web_evidence=[str(x) for x in web_refs],
+                tool_trace_refs=[],
+                reasoning_trace_refs=[],
+            )
+
     anchors = evidence_store.anchors or []
     bindings = evidence_store.bindings or []
     evidences = {item["evidence_id"]: item for item in evidence_store.evidences}
@@ -69,7 +102,7 @@ def build_final_answer(question: str, evidence_store):
         supporting_video_evidence=video_support,
         supporting_web_evidence=web_support,
         tool_trace_refs=[],
-        reasoning_trace_refs=[],
+        reasoning_trace_refs=reasoning_trace_refs,
     )
 
 

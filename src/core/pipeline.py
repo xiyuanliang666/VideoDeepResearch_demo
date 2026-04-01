@@ -19,7 +19,12 @@ def run_pipeline(sample: Sample, task_profile: dict, model_profile: dict) -> dic
     max_steps = int(task_profile.get("max_steps", 3))
 
     clips, observations, transcript_payload = build_observation_candidates(sample, task_profile)
-    observations = build_low_risk_observations(observations, sample.question)
+    observations = build_low_risk_observations(
+        observations,
+        sample.question,
+        task_profile=task_profile,
+        model_profile=model_profile,
+    )
 
     local_query, local_candidates = run_local_retrieval(
         sample.question,
@@ -91,7 +96,11 @@ def run_pipeline(sample: Sample, task_profile: dict, model_profile: dict) -> dic
             f"Collected {len(web_candidates)} web candidates and {len(bindings)} bindings.",
         ],
     )
-    final_answer = build_final_answer(sample.question, evidence_store)
+    final_answer = build_final_answer(
+        sample.question,
+        evidence_store,
+        model_profile=model_profile,
+    )
     judge_input, judge_result = build_judge_result(
         task_input={
             "sample_id": sample.sample_id,
