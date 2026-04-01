@@ -41,6 +41,11 @@ The project now follows a compact `method-first` layout:
 - `src/tools/`
   - reusable low-level utilities
 
+Execution mode:
+
+- `workflow` (default): fixed stage pipeline
+- `agentic`: LLM planner decides each web-search step (search/finalize loop)
+
 ## Quick Start
 
 ### 1. Install dependencies
@@ -185,6 +190,7 @@ Useful arguments:
 - `--adapter`: selects which benchmark adapter normalizes the raw samples
 - `--benchmark-config`: loads benchmark-specific defaults such as adapter and demo input file
 - `--mode`: label for baseline / method comparison, such as `framework`, `web_only`, `naive_concat`
+  - when set to `workflow` or `agentic`, it also controls execution mode
 - `--experiment-config`: optional yaml with `reasoning_models` list for batch comparison
 - `--limit`: run only the first N samples
 - `--run-id`: manually set the benchmark run id
@@ -195,6 +201,13 @@ Behavior:
 - each sample gets its own trace directory
 - if one sample fails, the whole batch does not stop
 - failures are recorded into the result rows
+
+You can also set mode in task profile yaml:
+
+```yaml
+mode: workflow   # or agentic
+max_agent_iterations: 3
+```
 
 ## Benchmark Configs And Demo Inputs
 

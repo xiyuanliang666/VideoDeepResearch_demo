@@ -1,4 +1,5 @@
 task_name: mmdeepresearch_report_v0
+mode: workflow
 input_mode: image_set
 output_mode: report
 clip_duration: 0
@@ -18,6 +19,7 @@ retriever_type: default
 topk_local: 3
 topk_web: 5
 max_steps: 2
+max_agent_iterations: 2
 retrieval_budget: 5
 trace_level: full
 required_outputs:

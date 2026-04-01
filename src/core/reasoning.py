@@ -7,10 +7,17 @@ from src.schemas import FinalAnswerBundle, JudgeInputBundle
 from src.tools.reasoning_tools import get_last_reasoning_error, run_online_reasoning
 
 
-def build_final_answer(question: str, evidence_store, model_profile: dict | None = None):
+def build_final_answer(
+    question: str,
+    evidence_store,
+    *,
+    benchmark_name: str = "",
+    model_profile: dict | None = None,
+):
     online = run_online_reasoning(
         question=question,
         evidence_store=evidence_store.to_dict() if hasattr(evidence_store, "to_dict") else dict(evidence_store),
+        benchmark_name=benchmark_name,
         model_profile=model_profile,
         max_tokens=800,
     )
@@ -134,5 +141,6 @@ def build_judge_result(
         judge_input=judge_input,
         model_name=model_profile.get("judge_model", "heuristic-judge"),
         prompt_version=task_profile.get("judge_prompt_version", "v0"),
+        benchmark_name=str(task_input.get("benchmark_name", "") or ""),
     )
     return judge_input, judge_result

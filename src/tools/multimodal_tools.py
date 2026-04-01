@@ -11,6 +11,7 @@ from typing import Any
 
 from .env_tools import normalize_openai_base_url
 from .model_router import get_model
+from .prompt_router import load_prompt_pair
 
 
 PROMPT_ROOT = Path(__file__).resolve().parents[2] / "prompts" / "observation_multimodal"
@@ -61,16 +62,11 @@ def _extract_json_dict(text: str) -> dict[str, Any] | None:
     return None
 
 
-def _load_prompt_text(path: Path, fallback: str) -> str:
-    if path.exists():
-        return path.read_text(encoding="utf-8").strip()
-    return fallback
-
-
 def analyze_observation_multimodal(
     *,
     question: str,
     media_paths: list[str],
+    benchmark_name: str = "",
     model_profile: dict | None = None,
     max_tokens: int = 500,
 ) -> dict[str, Any] | None:
@@ -88,13 +84,14 @@ def analyze_observation_multimodal(
         _set_multimodal_error("openai package is not installed")
         return None
 
-    system_prompt = _load_prompt_text(
-        PROMPT_ROOT / "system.txt",
-        "You are a careful multimodal analyst. Return JSON only.",
-    )
-    user_template = _load_prompt_text(
-        PROMPT_ROOT / "user.txt",
-        "Question:\n{question}\n\nReturn JSON with scene_clues/speech_clues/candidate_entities/candidate_actions/confidence.",
+    system_prompt, user_template = load_prompt_pair(
+        prompt_root=PROMPT_ROOT,
+        benchmark_name=benchmark_name,
+        fallback_system="You are a careful multimodal analyst. Return JSON only.",
+        fallback_user=(
+            "Question:\n{question}\n\nReturn JSON with "
+            "scene_clues/speech_clues/candidate_entities/candidate_actions/confidence."
+        ),
     )
     user_text = user_template.replace("{question}", question)
 

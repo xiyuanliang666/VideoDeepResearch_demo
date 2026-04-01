@@ -1,7 +1,7 @@
 Question:
 {question}
 
-Analyze the provided media and return strict JSON:
+Analyze the provided image or image set and return strict JSON:
 {
   "scene_clues": ["..."],
   "speech_clues": ["..."],
@@ -12,8 +12,8 @@ Analyze the provided media and return strict JSON:
 
 Constraints:
 - scene_clues: visual facts only (objects, scenes, diagrams, UI, captions, labels).
-- speech_clues: only explicit visible subtitle/transcript/dialog text if actually present.
+- speech_clues: only explicit visible text that appears as subtitle/quote/dialog text in the image.
 - candidate_entities: proper names, benchmarks, datasets, models, places, organizations.
-- candidate_actions: concrete actions/events implied by visible evidence.
+- candidate_actions: concrete actions/events supported by visible evidence.
 - confidence: [0,1], calibrated to evidence quality.
 - Keep each list <= 6 items.

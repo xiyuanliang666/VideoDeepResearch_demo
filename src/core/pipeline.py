@@ -22,6 +22,7 @@ def run_pipeline(sample: Sample, task_profile: dict, model_profile: dict) -> dic
     observations = build_low_risk_observations(
         observations,
         sample.question,
+        benchmark_name=sample.benchmark_name,
         task_profile=task_profile,
         model_profile=model_profile,
     )
@@ -99,6 +100,7 @@ def run_pipeline(sample: Sample, task_profile: dict, model_profile: dict) -> dic
     final_answer = build_final_answer(
         sample.question,
         evidence_store,
+        benchmark_name=sample.benchmark_name,
         model_profile=model_profile,
     )
     judge_input, judge_result = build_judge_result(

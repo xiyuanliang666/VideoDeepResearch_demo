@@ -9,6 +9,7 @@ from typing import Any
 
 from .env_tools import normalize_openai_base_url
 from .model_router import get_model
+from .prompt_router import load_prompt_pair
 
 
 PROMPT_ROOT = Path(__file__).resolve().parents[2] / "prompts" / "judge"
@@ -22,12 +23,6 @@ def get_last_judge_error() -> str:
 def _set_judge_error(message: str) -> None:
     global _LAST_JUDGE_ERROR
     _LAST_JUDGE_ERROR = message.strip()[:240]
-
-
-def _load_prompt_text(path: Path, fallback: str) -> str:
-    if path.exists():
-        return path.read_text(encoding="utf-8").strip()
-    return fallback
 
 
 def _extract_json_dict(text: str) -> dict[str, Any] | None:
@@ -53,14 +48,15 @@ def _extract_json_dict(text: str) -> dict[str, Any] | None:
     return None
 
 
-def _build_prompts(judge_input: dict[str, Any]) -> tuple[str, str]:
-    system_prompt = _load_prompt_text(
-        PROMPT_ROOT / "system.txt",
-        "Judge the model output and return JSON only.",
-    )
-    user_template = _load_prompt_text(
-        PROMPT_ROOT / "user.txt",
-        "Return JSON with overall_score, verdict, explanation, dimension_scores, failure_tags.\n\n{judge_input_json}",
+def _build_prompts(judge_input: dict[str, Any], benchmark_name: str = "") -> tuple[str, str]:
+    system_prompt, user_template = load_prompt_pair(
+        prompt_root=PROMPT_ROOT,
+        benchmark_name=benchmark_name,
+        fallback_system="Judge the model output and return JSON only.",
+        fallback_user=(
+            "Return JSON with overall_score, verdict, explanation, "
+            "dimension_scores, failure_tags.\n\n{judge_input_json}"
+        ),
     )
     payload = json.dumps(judge_input, ensure_ascii=False)
     user_prompt = user_template.replace("{judge_input_json}", payload)
@@ -71,6 +67,7 @@ def run_online_judge(
     *,
     judge_input: dict[str, Any],
     model_name: str,
+    benchmark_name: str = "",
     max_tokens: int = 800,
 ) -> dict[str, Any] | None:
     _set_judge_error("")
@@ -92,7 +89,7 @@ def run_online_judge(
 
     timeout_seconds = float(os.getenv("TIMEOUT_SECONDS", "30") or 30)
     resolved_model = get_model("judge", {"judge_model": model_name})
-    system_prompt, user_prompt = _build_prompts(judge_input)
+    system_prompt, user_prompt = _build_prompts(judge_input, benchmark_name=benchmark_name)
     client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout_seconds)
     try:
         response = client.chat.completions.create(

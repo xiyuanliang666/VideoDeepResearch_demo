@@ -12,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.adapters import get_adapter, list_adapters
+from src.core.agentic_pipeline import run_agentic_pipeline
 from src.evaluation.aggregate import build_comparison_row, summarize_results, write_comparison_csv
 from src.core.pipeline import run_pipeline
 from src.tools.cache_tools import load_json, load_jsonl, save_json, save_jsonl
@@ -36,7 +37,11 @@ def parse_args():
         default="",
         help=f"Adapter name. Available: {', '.join(list_adapters())}",
     )
-    parser.add_argument("--mode", default="framework")
+    parser.add_argument(
+        "--mode",
+        default="framework",
+        help="Run label. If set to 'workflow' or 'agentic', it also controls execution mode.",
+    )
     parser.add_argument(
         "--experiment-config",
         default="",
@@ -63,13 +68,22 @@ def load_samples(path: str | Path) -> list[dict]:
     raise ValueError(f"Unsupported benchmark input format: {target}")
 
 
-def build_result_row(result: dict, sample: dict, sample_id: str, run_id: str, benchmark_name: str, mode: str) -> dict:
+def build_result_row(
+    result: dict,
+    sample: dict,
+    sample_id: str,
+    run_id: str,
+    benchmark_name: str,
+    mode: str,
+    execution_mode: str,
+) -> dict:
     final_answer = result.get("final_answer") or {}
     judge_result = result.get("judge_result") or {}
     return {
         "run_id": run_id,
         "benchmark_name": benchmark_name,
         "mode": mode,
+        "execution_mode": execution_mode,
         "sample_id": sample_id,
         "video_path": sample.get("video_path") or sample.get("video") or sample.get("media_path") or "",
         "question": sample.get("question") or sample.get("query") or sample.get("prompt") or "",
@@ -94,6 +108,16 @@ def _model_tag(name: str) -> str:
     return tag[:48] if tag else "model"
 
 
+def _resolve_execution_mode(mode_label: str, task_profile: dict) -> str:
+    cli_mode = str(mode_label or "").strip().lower()
+    if cli_mode in {"workflow", "agentic"}:
+        return cli_mode
+    configured = str(task_profile.get("mode", "")).strip().lower()
+    if configured in {"workflow", "agentic"}:
+        return configured
+    return "workflow"
+
+
 def _run_once(
     *,
     samples: list[dict],
@@ -104,6 +128,8 @@ def _run_once(
     mode: str,
     run_id: str,
 ) -> dict:
+    execution_mode = _resolve_execution_mode(mode, task_profile)
+    pipeline_fn = run_agentic_pipeline if execution_mode == "agentic" else run_pipeline
     trace_root = Path(build_run_dir("outputs/traces", run_id))
     eval_dir = Path(build_run_dir("outputs/eval", run_id))
     answers_path = Path("outputs/answers") / f"{run_id}.jsonl"
@@ -119,7 +145,7 @@ def _run_once(
         try:
             adapted_sample = adapter(sample, index)
             sample_id = adapted_sample.sample_id
-            result = run_pipeline(
+            result = pipeline_fn(
                 sample=adapted_sample,
                 task_profile=task_profile,
                 model_profile=model_profile,
@@ -135,6 +161,7 @@ def _run_once(
                 run_id=run_id,
                 benchmark_name=benchmark_name,
                 mode=mode,
+                execution_mode=execution_mode,
             )
         except Exception as exc:  # noqa: BLE001
             sample_trace_dir = trace_root / sample_id
@@ -153,6 +180,7 @@ def _run_once(
                 "run_id": run_id,
                 "benchmark_name": benchmark_name,
                 "mode": mode,
+                "execution_mode": execution_mode,
                 "sample_id": sample_id,
                 "video_path": sample.get("video_path") or sample.get("video") or sample.get("media_path") or "",
                 "question": sample.get("question") or sample.get("query") or sample.get("prompt") or "",
@@ -174,6 +202,7 @@ def _run_once(
         answer_rows.append(
             {
                 "run_id": run_id,
+                "execution_mode": execution_mode,
                 "sample_id": sample_id,
                 "question": result_row["question"],
                 "final_answer": result_row["final_answer"],
@@ -191,6 +220,7 @@ def _run_once(
     write_comparison_csv([build_comparison_row(summary)], comparison_path)
     return {
         "run_id": run_id,
+        "execution_mode": execution_mode,
         "answers_path": answers_path,
         "results_path": results_path,
         "summary_path": summary_path,
@@ -241,6 +271,7 @@ def main():
         print(f"benchmark_name={benchmark_name}")
         print(f"adapter={adapter_name}")
         print(f"input_file={input_file}")
+        print(f"execution_mode={result['execution_mode']}")
         print(f"samples={result['samples']}")
         print(f"answers_file={result['answers_path']}")
         print(f"results_file={result['results_path']}")
@@ -267,6 +298,7 @@ def main():
         print(f"adapter={adapter_name}")
         print(f"reasoning_model={model_name}")
         print(f"input_file={input_file}")
+        print(f"execution_mode={result['execution_mode']}")
         print(f"samples={result['samples']}")
         print(f"answers_file={result['answers_path']}")
         print(f"results_file={result['results_path']}")

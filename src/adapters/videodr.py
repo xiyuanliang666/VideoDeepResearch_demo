@@ -20,3 +20,4 @@ def adapt_sample(raw_sample: dict, index: int = 0) -> Sample:
         output_mode="short_answer",
         metadata=raw_sample.get("metadata", {}),
     )
+

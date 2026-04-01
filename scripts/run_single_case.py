@@ -10,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.core.agentic_pipeline import run_agentic_pipeline
 from src.core.pipeline import run_pipeline
 from src.schemas import Sample
 from src.tools.cache_tools import save_json
@@ -37,7 +38,22 @@ def parse_args():
         default="",
         help="Optional run id. If omitted, one will be generated.",
     )
+    parser.add_argument(
+        "--mode",
+        default="",
+        help="Execution mode: workflow or agentic. Empty means follow task profile.",
+    )
     return parser.parse_args()
+
+
+def _resolve_execution_mode(mode_label: str, task_profile: dict) -> str:
+    cli_mode = str(mode_label or "").strip().lower()
+    if cli_mode in {"workflow", "agentic"}:
+        return cli_mode
+    configured = str(task_profile.get("mode", "")).strip().lower()
+    if configured in {"workflow", "agentic"}:
+        return configured
+    return "workflow"
 
 
 def main():
@@ -45,6 +61,8 @@ def main():
     args = parse_args()
     task_profile = load_config(args.task_profile)
     model_profile = load_config(args.model_profile)
+    execution_mode = _resolve_execution_mode(args.mode, task_profile)
+    pipeline_fn = run_agentic_pipeline if execution_mode == "agentic" else run_pipeline
 
     run_id = args.run_id or build_run_id("single_case")
     run_dir = build_run_dir("outputs/traces", run_id)
@@ -59,7 +77,7 @@ def main():
         metadata={},
     )
 
-    result = run_pipeline(
+    result = pipeline_fn(
         sample=sample,
         task_profile=task_profile,
         model_profile=model_profile,
@@ -72,6 +90,7 @@ def main():
     print(f"run_id={run_id}")
     print(f"trace_dir={run_dir}")
     print(f"answer_file=outputs/answers/{run_id}.json")
+    print(f"execution_mode={execution_mode}")
     print(f"status={result['status']}")
     print(f"clips={len(result['clips'])}")
     print(f"observations={len(result['observations'])}")

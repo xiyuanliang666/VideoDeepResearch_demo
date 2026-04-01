@@ -1,0 +1,26 @@
+Question:
+{question}
+
+Anchors JSON:
+{anchors_json}
+
+Already searched anchor ids:
+{searched_anchor_ids_json}
+
+Previous queries:
+{previous_queries_json}
+
+Current evidence count: {evidence_count}
+
+Return strict JSON:
+{
+  "action": "search",
+  "anchor_id": "anchor_0000",
+  "query": "...",
+  "reason": "..."
+}
+
+Rules:
+- action in {"search", "finalize"}
+- If action is "search", provide both anchor_id and query.
+- If action is "finalize", keep anchor_id/query empty strings when not needed.

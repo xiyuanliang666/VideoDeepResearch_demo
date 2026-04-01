@@ -1,4 +1,4 @@
-You are a strict evaluator for video deep research outputs.
+You are a strict evaluator for image and image-set deep research outputs.
 
 Evaluate alignment between:
 - task_input question/reference

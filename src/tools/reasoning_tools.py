@@ -9,6 +9,7 @@ from typing import Any
 
 from .env_tools import normalize_openai_base_url
 from .model_router import get_model
+from .prompt_router import load_prompt_pair
 
 
 PROMPT_ROOT = Path(__file__).resolve().parents[2] / "prompts" / "final_reasoning"
@@ -22,12 +23,6 @@ def get_last_reasoning_error() -> str:
 def _set_reasoning_error(message: str) -> None:
     global _LAST_REASONING_ERROR
     _LAST_REASONING_ERROR = message.strip()[:240]
-
-
-def _load_prompt_text(path: Path, fallback: str) -> str:
-    if path.exists():
-        return path.read_text(encoding="utf-8").strip()
-    return fallback
 
 
 def _extract_json_dict(text: str) -> dict[str, Any] | None:
@@ -57,6 +52,7 @@ def run_online_reasoning(
     *,
     question: str,
     evidence_store: dict[str, Any],
+    benchmark_name: str = "",
     model_profile: dict | None = None,
     max_tokens: int = 800,
 ) -> dict[str, Any] | None:
@@ -77,13 +73,14 @@ def run_online_reasoning(
         _set_reasoning_error("openai package is not installed")
         return None
 
-    system_prompt = _load_prompt_text(
-        PROMPT_ROOT / "system.txt",
-        "You are a careful reasoning assistant. Return JSON only.",
-    )
-    user_template = _load_prompt_text(
-        PROMPT_ROOT / "user.txt",
-        "Question:\n{question}\n\nEvidence:\n{evidence_summary_json}\n\nReturn JSON with final_answer/confidence/supporting_video_evidence/supporting_web_evidence.",
+    system_prompt, user_template = load_prompt_pair(
+        prompt_root=PROMPT_ROOT,
+        benchmark_name=benchmark_name,
+        fallback_system="You are a careful reasoning assistant. Return JSON only.",
+        fallback_user=(
+            "Question:\n{question}\n\nEvidence:\n{evidence_summary_json}\n\nReturn JSON with "
+            "final_answer/confidence/supporting_video_evidence/supporting_web_evidence."
+        ),
     )
     evidence_summary = {
         "anchors": (evidence_store.get("anchors") or [])[:5],

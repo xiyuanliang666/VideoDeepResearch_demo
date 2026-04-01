@@ -46,6 +46,7 @@ def build_low_risk_observations(
     observations: list[ObservationUnit],
     question: str,
     *,
+    benchmark_name: str = "",
     task_profile: dict | None = None,
     model_profile: dict | None = None,
 ) -> list[ObservationUnit]:
@@ -91,6 +92,7 @@ def build_low_risk_observations(
         hints = analyze_observation_multimodal(
             question=question,
             media_paths=media_candidates,
+            benchmark_name=benchmark_name,
             model_profile=model_profile,
             max_tokens=500,
         )
