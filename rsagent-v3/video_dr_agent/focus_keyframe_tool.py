@@ -1,0 +1,426 @@
+"""
+FOCUS 关键帧筛选工具：调用 rsagent/FOCUS/select_keyframe.py 中的逻辑。
+
+工具名: focus_select_keyframes
+
+<tool_call> 建议 arguments:
+{
+  "question": "<与 BLIP 图文匹配一致的查询/任务描述>",
+  "video_path": "<可选；见下方。默认用主机配置的 FOCUS_SOURCE_VIDEO / --video>",
+  "frame_caption": "focus",   // 可选，参与输出文件夹命名
+  "round": 1,                 // 可选；默认用主循环传入的 round_index
+  "num_keyframes": 8,         // 及以下均为可选，覆盖 FOCUS 默认
+  "batch_size": 16,
+  "blip_model": "large",
+  "time_start_sec": null,    // 强烈建议：若 Planning 阶段有均匀概览时间表，将子问题对应的时间窗传入，限制解码/检索范围
+  "time_end_sec": null,      // 与 time_start_sec 成对使用；可略宽于目标事件几秒作为 padding
+  "seed": 42
+}
+
+输出目录: <output_root> / {视频stem}_r{轮次}_{frame_caption}/
+  - frames/000_frame{idx}.jpg ...
+  - keyframes.json   (frame_indices, times_sec, fps)
+  - meta.json        (路径、问题摘要等)
+
+返回值: JSON 字符串，含 times_sec 列表（每帧在视频中的秒数）及 output_dir。
+
+路径解析: 若 ``arguments`` 中的 ``video_path``/``video`` 解析后不是已存在的文件，则回退使用
+``FocusKeyframeToolDispatcher.default_video_path``（与 CLI ``--video`` / 环境 ``FOCUS_SOURCE_VIDEO`` 一致）。
+成功时 JSON 含 ``used_default_video_fallback`` 表示是否因模型路径无效而使用了主机默认路径。
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+import uuid
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
+
+from video_dr_agent.protocols import ToolDispatcher
+from video_dr_agent.stubs import StubToolDispatcher
+
+FOCUS_SELECT_KEYFRAMES_TOOL_NAME = "focus_select_keyframes"
+
+
+def _focus_package_dir() -> Path:
+    return Path(__file__).resolve().parents[1] / "FOCUS"
+
+
+def _import_select_keyframe():
+    root = _focus_package_dir()
+    if not root.is_dir():
+        raise ImportError(f"FOCUS directory not found: {root}")
+    p = str(root)
+    if p not in sys.path:
+        sys.path.insert(0, p)
+    from select_keyframe import (  # noqa: WPS433
+        frame_indices_to_times_sec,
+        run_focus_on_video_file,
+    )
+
+    return run_focus_on_video_file, frame_indices_to_times_sec
+
+
+def _slug(s: str, max_len: int = 64) -> str:
+    s = (s or "focus").strip()
+    s = re.sub(r"[^\w\u4e00-\u9fff\-]+", "_", s, flags=re.UNICODE)
+    s = s.strip("_") or "focus"
+    return s[:max_len]
+
+
+def default_focus_arg_namespace(**overrides: Any) -> SimpleNamespace:
+    """与 FOCUS/select_keyframe.py parse_arguments 默认值对齐（单视频模式所需字段）。"""
+    base: dict[str, Any] = {
+        "dataset_name": "longvideobench",
+        "dataset_path": "./datasets/longvideobench",
+        "output_dir": "unused",
+        "num_keyframes": 8,
+        "batch_size": 32,
+        "blip_model": "large",
+        "top_ratio": 0.2,
+        "temperature": 0.06,
+        "min_gap_sec": 1.0,
+        "disable_gap_below_sec": 0.2,
+        "gap_ratio_of_avg": 0.25,
+        "coarse_every_sec": 16.0,
+        "fine_every_sec": 1.0,
+        "zoom_ratio": 0.25,
+        "min_coarse_segments": 8,
+        "min_zoom_segments": 4,
+        "region_half_window_sec": None,
+        "extra_samples_per_region": 2,
+        "min_variance_threshold": 1e-6,
+        "fine_uniform_ratio": 0.5,
+        "interpolation_method": "nearest",
+        "final_min_arms": 4,
+        "final_max_arms": 32,
+        "seed": 42,
+        "limit": None,
+        "offset": 0,
+        "video_path": None,
+        "query": None,
+        "query_file": None,
+        "time_start_sec": None,
+        "time_end_sec": None,
+    }
+    for k, v in overrides.items():
+        if v is not None:
+            base[k] = v
+    return SimpleNamespace(**base)
+
+
+def _export_frame_jpgs(
+    video_path: str,
+    frame_indices: list[int],
+    times_sec: list[float],
+    frames_dir: Path,
+    *,
+    max_side: int = 0,
+) -> list[dict[str, Any]]:
+    from decord import VideoReader, cpu
+    from PIL import Image
+    import torch
+
+    vr = VideoReader(video_path, ctx=cpu(0))
+    frames_dir.mkdir(parents=True, exist_ok=True)
+    files: list[dict[str, Any]] = []
+    for i, idx in enumerate(frame_indices):
+        idx = max(0, min(int(idx), len(vr) - 1))
+        raw = vr[idx]
+        # decord 可能返回 NDArray（asnumpy）或 torch.Tensor（numpy/cpu）；与 FOCUS/select_keyframe 中
+        # ``vr[idx].numpy()`` 对齐，避免仅 asnumpy 时在 Tensor 上报错。
+        if hasattr(raw, "asnumpy"):
+            arr = raw.asnumpy()
+        else:
+            if isinstance(raw, torch.Tensor):
+                arr = raw.detach().cpu().numpy()
+            elif hasattr(raw, "numpy"):
+                arr = raw.numpy()
+            else:
+                raise TypeError(f"Unexpected frame type from decord: {type(raw)!r}")
+        im = Image.fromarray(arr)
+        if max_side and max_side > 0:
+            im.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
+        fname = f"{i:03d}_frame{idx}.jpg"
+        fpath = frames_dir / fname
+        im.save(fpath, quality=92)
+        t = times_sec[i] if i < len(times_sec) else float(idx) / max(
+            float(vr.get_avg_fps()), 1e-6
+        )
+        files.append(
+            {
+                "file": str(fpath),
+                "rel_path": f"frames/{fname}",
+                "frame_index": idx,
+                "time_sec": round(float(t), 6),
+            }
+        )
+    return files
+
+
+class FocusKeyframeToolDispatcher(ToolDispatcher):
+    """
+    处理 ``focus_select_keyframes``；其余 ``name`` 交给 ``fallback``。
+
+    与网页搜索等工具 **独立**：是否执行 FOCUS 仅取决于本轮 ``<tool_call>`` 的 ``name``，
+    而非与其它工具的运行顺序。``fallback`` 链仅用于 **路由** 未匹配的 tool 名。
+    """
+
+    def __init__(
+        self,
+        output_root: str | Path,
+        *,
+        device: str = "cuda:0",
+        fallback: ToolDispatcher | None = None,
+        focus_arg_defaults: dict[str, Any] | None = None,
+        default_video_path: str | None = None,
+    ) -> None:
+        self.output_root = Path(output_root).expanduser().resolve()
+        self.device = device
+        self.fallback = fallback or StubToolDispatcher()
+        self.focus_arg_defaults = focus_arg_defaults or {}
+        self.default_video_path = (
+            str(Path(default_video_path).expanduser().resolve())
+            if default_video_path
+            else None
+        )
+
+    def dispatch(
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        *,
+        round_index: int | None = None,
+    ) -> str:
+        if name == FOCUS_SELECT_KEYFRAMES_TOOL_NAME:
+            return self._run_focus(arguments, round_index=round_index)
+        return self.fallback.dispatch(
+            name, arguments, round_index=round_index
+        )
+
+    def _run_focus(
+        self,
+        arguments: dict[str, Any],
+        *,
+        round_index: int | None,
+    ) -> str:
+        try:
+            return self._run_focus_impl(arguments, round_index=round_index)
+        except Exception as exc:  # noqa: BLE001
+            err = f"{type(exc).__name__}: {exc}"
+            payload: dict[str, Any] = {
+                "ok": False,
+                "tool": FOCUS_SELECT_KEYFRAMES_TOOL_NAME,
+                "error": err,
+            }
+            if isinstance(exc, ImportError):
+                low = err.lower()
+                if "decord" in low:
+                    payload["install_hint"] = (
+                        "pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）"
+                    )
+            return json.dumps(payload, ensure_ascii=False)
+
+    def _run_focus_impl(
+        self,
+        arguments: dict[str, Any],
+        *,
+        round_index: int | None,
+    ) -> str:
+        question = (arguments.get("question") or arguments.get("query") or "").strip()
+        raw_vp = arguments.get("video_path") or arguments.get("video")
+        vp_str = str(raw_vp).strip() if raw_vp is not None else ""
+
+        def _existing_video_file(path_candidate: str | None) -> str | None:
+            if not path_candidate or not str(path_candidate).strip():
+                return None
+            try:
+                rp = Path(str(path_candidate).strip()).expanduser().resolve()
+            except OSError:
+                return None
+            return str(rp) if rp.is_file() else None
+
+        if not question:
+            raise ValueError("arguments.question（或 query）不能为空")
+
+        video_file: str | None = None
+        used_default_fallback = False
+        if vp_str:
+            video_file = _existing_video_file(vp_str)
+        if video_file is None and self.default_video_path:
+            fb = _existing_video_file(self.default_video_path)
+            if fb is not None:
+                video_file = fb
+                if vp_str:
+                    used_default_fallback = True
+        if video_file is None:
+            if not vp_str and not self.default_video_path:
+                raise ValueError(
+                    "arguments.video_path（或 video）不能为空，且未设置 FocusKeyframeToolDispatcher.default_video_path"
+                )
+            raise FileNotFoundError(
+                "无法解析可用的本地视频文件：arguments 中的路径无效或不存在，且 "
+                f"default_video_path 不可用（arguments={vp_str!r}, default={self.default_video_path!r}）"
+            )
+
+        caption = _slug(str(arguments.get("frame_caption") or "focus"))
+        rnd = arguments.get("round")
+        if rnd is None:
+            rnd = round_index if round_index is not None else 1
+        rnd = int(rnd)
+
+        stem = _slug(Path(video_file).stem, max_len=80)
+        dir_name = f"{stem}_r{rnd}_{caption}"
+        out_dir = self.output_root / dir_name
+        if out_dir.exists():
+            out_dir = self.output_root / f"{dir_name}_{uuid.uuid4().hex[:8]}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        ns_kwargs = {**self.focus_arg_defaults}
+        for key in (
+            "num_keyframes",
+            "batch_size",
+            "blip_model",
+            "time_start_sec",
+            "time_end_sec",
+            "seed",
+            "top_ratio",
+            "temperature",
+            "min_gap_sec",
+            "coarse_every_sec",
+            "fine_every_sec",
+            "zoom_ratio",
+        ):
+            if key in arguments and arguments[key] is not None:
+                ns_kwargs[key] = arguments[key]
+
+        args_ns = default_focus_arg_namespace(**ns_kwargs)
+        seed = int(getattr(args_ns, "seed", 42))
+
+        import numpy as np
+
+        rng = np.random.default_rng(seed)
+
+        run_focus, _fit = _import_select_keyframe()
+        import torch
+
+        if not torch.cuda.is_available():
+            raise RuntimeError("FOCUS/BLIP 需要 CUDA；当前 torch.cuda.is_available() 为 False")
+
+        selected, sampling_details, bstat = run_focus(
+            video_file,
+            question,
+            args_ns,
+            self.device,
+            rng,
+        )
+
+        fps_out = float(sampling_details["video_metadata"]["fps"])
+        times_sec = _fit(selected, fps_out)
+
+        keyframes_path = out_dir / "keyframes.json"
+        with keyframes_path.open("w", encoding="utf-8") as f:
+            json.dump(
+                [
+                    {
+                        "frame_indices": [int(x) for x in selected],
+                        "times_sec": times_sec,
+                        "fps": fps_out,
+                    }
+                ],
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
+
+        frames_dir = out_dir / "frames"
+        frame_records = _export_frame_jpgs(
+            video_file, [int(x) for x in selected], times_sec, frames_dir
+        )
+
+        meta_path = out_dir / "meta.json"
+        meta = {
+            "tool": FOCUS_SELECT_KEYFRAMES_TOOL_NAME,
+            "video_path": video_file,
+            "video_path_in_arguments": vp_str or None,
+            "used_default_video_fallback": used_default_fallback,
+            "question": question,
+            "round": rnd,
+            "frame_caption": caption,
+            "output_dir": str(out_dir),
+            "num_frames": len(selected),
+            "times_sec": times_sec,
+            "frame_indices": [int(x) for x in selected],
+            "fps": fps_out,
+            "budget_used": bstat.get("budget_used"),
+        }
+        with meta_path.open("w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2, ensure_ascii=False)
+
+        payload = {
+            "ok": True,
+            "tool": FOCUS_SELECT_KEYFRAMES_TOOL_NAME,
+            "output_dir": str(out_dir),
+            "times_sec": times_sec,
+            "frame_indices": [int(x) for x in selected],
+            "fps": fps_out,
+            "frames": frame_records,
+            "question": question,
+            "video_path": video_file,
+            "video_path_in_arguments": vp_str or None,
+            "used_default_video_fallback": used_default_fallback,
+            "round": rnd,
+            "frame_caption": caption,
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
+
+def build_focus_dispatcher(
+    output_root: str | Path,
+    *,
+    device: str = "cuda:0",
+    include_example_noop: bool = False,
+    focus_arg_defaults: dict[str, Any] | None = None,
+    default_video_path: str | None = None,
+) -> ToolDispatcher:
+    """工厂：FOCUS +（可选）example_noop + 其余 stub。"""
+    from video_dr_agent.tools_example import (
+        EXAMPLE_NOOP_TOOL_NAME,
+        ExampleToolDispatcher,
+    )
+
+    stub_backend: ToolDispatcher = StubToolDispatcher()
+
+    if include_example_noop:
+        ex = ExampleToolDispatcher()
+
+        class _Chain(ToolDispatcher):
+            def dispatch(
+                self,
+                name: str,
+                arguments: dict[str, Any],
+                *,
+                round_index: int | None = None,
+            ) -> str:
+                if name == EXAMPLE_NOOP_TOOL_NAME:
+                    return ex.dispatch(
+                        name, arguments, round_index=round_index
+                    )
+                return stub_backend.dispatch(
+                    name, arguments, round_index=round_index
+                )
+
+        inner: ToolDispatcher = _Chain()
+    else:
+        inner = stub_backend
+
+    return FocusKeyframeToolDispatcher(
+        output_root,
+        device=device,
+        fallback=inner,
+        focus_arg_defaults=focus_arg_defaults,
+        default_video_path=default_video_path,
+    )

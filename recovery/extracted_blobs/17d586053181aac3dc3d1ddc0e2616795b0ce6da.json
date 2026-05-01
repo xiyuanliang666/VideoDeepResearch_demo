@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/16.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "tall spherical tower",
+  "round": 1,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v3/video_dr_agent/out_put_frame/16_r1_focus_5e2fa019",
+  "num_frames": 8,
+  "times_sec": [
+    0.033333,
+    0.566667,
+    4.6,
+    6.533333,
+    7.433333,
+    9.566667,
+    9.9,
+    16.066667
+  ],
+  "frame_indices": [
+    1,
+    17,
+    138,
+    196,
+    223,
+    287,
+    297,
+    482
+  ],
+  "fps": 30.0,
+  "budget_used": 36
+}

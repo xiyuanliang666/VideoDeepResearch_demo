@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/56.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "Identify company names on screen",
+  "round": 3,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v2/video_dr_agent/out_put_frame/56_r3_focus",
+  "num_frames": 8,
+  "times_sec": [
+    6.48,
+    79.52,
+    137.08,
+    141.0,
+    141.32,
+    202.2,
+    272.6,
+    546.52
+  ],
+  "frame_indices": [
+    162,
+    1988,
+    3427,
+    3525,
+    3533,
+    5055,
+    6815,
+    13663
+  ],
+  "fps": 25.0,
+  "budget_used": 264
+}

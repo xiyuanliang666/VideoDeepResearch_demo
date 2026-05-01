@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/16.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "relative position of spherical tower to classical building",
+  "round": 3,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v3/video_dr_agent/out_put_frame/16_r3_focus",
+  "num_frames": 8,
+  "times_sec": [
+    5.166667,
+    6.233333,
+    7.966667,
+    15.133333,
+    16.033333,
+    16.266667,
+    23.166667,
+    23.333333
+  ],
+  "frame_indices": [
+    155,
+    187,
+    239,
+    454,
+    481,
+    488,
+    695,
+    700
+  ],
+  "fps": 30.0,
+  "budget_used": 36
+}

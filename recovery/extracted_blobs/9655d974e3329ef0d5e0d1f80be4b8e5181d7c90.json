@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/1.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "temple complex with tiered roofs and lotus ponds",
+  "round": 2,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v3/video_dr_agent/out_put_frame/1_r2_focus",
+  "num_frames": 8,
+  "times_sec": [
+    66.266667,
+    69.55,
+    89.983333,
+    90.083333,
+    91.15,
+    92.95,
+    93.3,
+    95.083333
+  ],
+  "frame_indices": [
+    3976,
+    4173,
+    5399,
+    5405,
+    5469,
+    5577,
+    5598,
+    5705
+  ],
+  "fps": 60.0,
+  "budget_used": 40
+}

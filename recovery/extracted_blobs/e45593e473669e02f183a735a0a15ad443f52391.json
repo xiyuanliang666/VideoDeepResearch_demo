@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/9.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "Identify the aircraft associated with the team 'Polse i Vaffel' that achieved the longest glide distance.",
+  "round": 1,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v2/video_dr_agent/out_put_frame/9_r1_focus",
+  "num_frames": 8,
+  "times_sec": [
+    280.0,
+    280.32,
+    281.32,
+    281.52,
+    305.28,
+    339.52,
+    344.8,
+    347.4
+  ],
+  "frame_indices": [
+    7000,
+    7008,
+    7033,
+    7038,
+    7632,
+    8488,
+    8620,
+    8685
+  ],
+  "fps": 25.0,
+  "budget_used": 56
+}

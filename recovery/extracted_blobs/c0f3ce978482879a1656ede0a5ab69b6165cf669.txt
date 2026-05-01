@@ -1,0 +1,906 @@
+"""
+FOCUS Data Processing and I/O Module
+
+This module handles data processing, video loading, and result output
+for the FOCUS keyframe extraction algorithm.
+"""
+
+import os
+import json
+import copy
+import math
+import argparse
+import datetime
+import random
+import time
+from typing import Optional, List, Tuple, Dict
+
+import numpy as np
+import torch
+import ray
+from decord import VideoReader, cpu
+from PIL import Image
+from tqdm import tqdm
+
+from lavis.models import load_model_and_preprocess
+from focus import FOCUS
+
+
+def frame_indices_to_times_sec(indices: List[int], fps: float) -> List[float]:
+    """按恒定 fps 将帧下标转为视频内时间（秒），与 decord 时间轴一致。"""
+    fp = max(float(fps), 1e-6)
+    return [round(int(i) / fp, 6) for i in indices]
+
+
+# ============================================================================
+# Video Processing Functions
+# ============================================================================
+
+def create_blip_similarity_fn(vr: VideoReader, vis_processors, text_processors, 
+                              model, device: str, batch_size: int):
+    """
+    Create a BLIP-based similarity function for FOCUS algorithm.
+    
+    This function creates a closure that captures the BLIP model and processors,
+    providing a clean interface for the FOCUS algorithm.
+    
+    Args:
+        vr: VideoReader object
+        vis_processors: Vision processors for BLIP
+        text_processors: Text processors for BLIP
+        model: BLIP model
+        device: Device to run inference on
+        batch_size: Batch size for processing
+        
+    Returns:
+        Function with signature (video, query, frame_indices) -> similarity_scores
+    """
+    def similarity_fn(video: VideoReader, query: str, frame_indices: List[int]) -> List[float]:
+        """
+        Compute BLIP similarity scores for a batch of frame indices.
+        
+        Args:
+            video: VideoReader object (same as vr from closure)
+            query: Query text
+            frame_indices: List of frame indices to compute similarity for
+            
+        Returns:
+            List of similarity scores
+        """
+        txt = text_processors["eval"](query)
+        similarities = []
+        
+        for i in range(0, len(frame_indices), batch_size):
+            batch_indices = frame_indices[i:i+batch_size]
+            batch_images = []
+            for idx in batch_indices:
+                raw_image = vr[idx].numpy()
+                raw_image = Image.fromarray(raw_image)
+                img = vis_processors["eval"](raw_image).unsqueeze(0)
+                batch_images.append(img)
+            
+            if batch_images:
+                batch_tensor = torch.cat(batch_images, dim=0).to(device)
+                with torch.no_grad():
+                    blip_output, _ = model({"image": batch_tensor, "text_input": txt}, match_head="itm-e")
+                    blip_scores = torch.nn.functional.softmax(blip_output, dim=1)
+                    batch_similarities = [blip_scores[j, 1].item() for j in range(len(batch_indices))]
+                    similarities.extend(batch_similarities)
+        
+        return similarities
+    
+    return similarity_fn
+
+
+class DecordWindowView:
+    """
+    将 decord VideoReader 限制在 [start_frame, end_frame_exclusive) 上。
+    FOCUS 内部下标为窗口内 0 .. len-1，与原视频全局帧号相差 `start_frame`。
+    """
+
+    def __init__(self, vr: VideoReader, start_frame: int, end_frame_exclusive: int):
+        self._vr = vr
+        n = len(vr)
+        self._s = max(0, min(int(start_frame), max(0, n - 1)))
+        excl = max(self._s + 1, min(int(end_frame_exclusive), n))
+        self._e = excl
+
+    def __len__(self) -> int:
+        return self._e - self._s
+
+    def get_avg_fps(self) -> float:
+        return float(self._vr.get_avg_fps())
+
+    def __getitem__(self, idx):
+        i = int(idx)
+        if i < 0 or i >= len(self):
+            raise IndexError(i)
+        return self._vr[self._s + i]
+
+
+def compute_time_window_frames(
+    vr: VideoReader,
+    time_start_sec: Optional[float],
+    time_end_sec: Optional[float],
+) -> Tuple[int, int, float, float]:
+    """
+    返回 (start_frame, end_frame_exclusive, t_start_clamped, t_end_clamped)。
+    若未指定时间窗口，则覆盖整段视频。
+    区间为半开 [t_start, t_end) 映射到帧（按 fps 取整）。
+    """
+    fps = float(vr.get_avg_fps())
+    n = len(vr)
+    dur = n / max(fps, 1e-6)
+    if time_start_sec is None and time_end_sec is None:
+        return 0, n, 0.0, dur
+    t0 = 0.0 if time_start_sec is None else float(time_start_sec)
+    t1 = dur if time_end_sec is None else float(time_end_sec)
+    t0 = max(0.0, min(t0, dur))
+    t1 = max(0.0, min(t1, dur))
+    if t1 <= t0:
+        raise ValueError(f"时间窗口为空: start={t0}s, end={t1}s，视频时长约 {dur:.3f}s")
+    s = int(math.floor(t0 * fps))
+    e_excl = int(math.ceil(t1 * fps))
+    s = max(0, min(s, n - 1))
+    e_excl = max(s + 1, min(e_excl, n))
+    return s, e_excl, t0, t1
+
+
+def remap_sampling_details_to_global(
+    details: Dict,
+    frame_offset: int,
+    fps: float,
+    full_total_frames: int,
+    full_duration_sec: float,
+    t_start_sec: float,
+    t_end_sec: float,
+    window_start_frame: int,
+    window_end_excl: int,
+) -> Dict:
+    """把窗口内坐标系下的 sampling_details 转为全片帧号，并写回全片时长信息。"""
+    d = copy.deepcopy(details)
+    off = int(frame_offset)
+    fp = max(fps, 1e-6)
+
+    def shift_frames(xs: List[int]) -> List[int]:
+        return [int(x) + off for x in xs]
+
+    cs = d["coarse_sampling"]
+    cs["frame_indices"] = shift_frames(cs["frame_indices"])
+    for item in cs["temporal_order"]:
+        item["frame_idx"] = int(item["frame_idx"]) + off
+        item["timestamp"] = item["frame_idx"] / fp
+
+    fs = d["fine_sampling"]
+    fs["frame_indices"] = shift_frames(fs["frame_indices"])
+    for item in fs["temporal_order"]:
+        item["frame_idx"] = int(item["frame_idx"]) + off
+        item["timestamp"] = item["frame_idx"] / fp
+
+    for arm in d["arms_info"]["arms"]:
+        arm["start_frame"] = int(arm["start_frame"]) + off
+        arm["end_frame"] = int(arm["end_frame"]) + off
+
+    d["final_selected_frames"] = shift_frames(d["final_selected_frames"])
+    d["video_metadata"]["total_frames"] = int(full_total_frames)
+    d["video_metadata"]["duration_seconds"] = float(full_duration_sec)
+    d["video_metadata"]["timestamp_in_full_video"] = True
+
+    d["time_window"] = {
+        "start_sec": float(t_start_sec),
+        "end_sec": float(t_end_sec),
+        "start_frame": int(window_start_frame),
+        "end_frame_exclusive": int(window_end_excl),
+        "global_frame_offset": off,
+    }
+    return d
+
+
+def run_focus_on_video_reader(
+    vr_full: VideoReader,
+    query: str,
+    args,
+    device: str,
+    rng: np.random.Generator,
+    model,
+    vis_processors,
+    text_processors,
+) -> Tuple[List[int], Dict, Dict]:
+    """
+    在已打开的 VideoReader 上跑 FOCUS（支持时间窗口）。
+    返回的全局帧号与 sampling_details 均为**原视频**坐标系。
+    """
+    fps = float(vr_full.get_avg_fps())
+    n_full = len(vr_full)
+    dur_full = n_full / max(fps, 1e-6)
+    t0 = getattr(args, "time_start_sec", None)
+    t1 = getattr(args, "time_end_sec", None)
+    s, e_excl, t0c, t1c = compute_time_window_frames(vr_full, t0, t1)
+
+    if s == 0 and e_excl >= n_full:
+        vr_work: VideoReader | DecordWindowView = vr_full
+        offset = 0
+        win_dur = dur_full
+    else:
+        vr_work = DecordWindowView(vr_full, s, e_excl)
+        offset = s
+        win_dur = len(vr_work) / max(fps, 1e-6)
+
+    avg_spacing_sec = win_dur / max(1, args.num_keyframes)
+    if avg_spacing_sec <= float(args.disable_gap_below_sec):
+        auto_min_gap_sec = 0.0
+    else:
+        gap_from_ratio = float(args.gap_ratio_of_avg) * avg_spacing_sec
+        auto_min_gap_sec = min(gap_from_ratio, float(args.min_gap_sec))
+
+    similarity_fn = create_blip_similarity_fn(
+        vr_work, vis_processors, text_processors, model, device, args.batch_size
+    )
+
+    focus = FOCUS(
+        similarity_fn=similarity_fn,
+        coarse_every_sec=args.coarse_every_sec,
+        fine_every_sec=args.fine_every_sec,
+        zoom_ratio=args.zoom_ratio,
+        final_min_arms=args.final_min_arms,
+        final_max_arms=args.final_max_arms,
+        min_coarse_segments=args.min_coarse_segments,
+        min_zoom_segments=args.min_zoom_segments,
+        extra_samples_per_region=args.extra_samples_per_region,
+        min_variance_threshold=args.min_variance_threshold,
+        fine_uniform_ratio=args.fine_uniform_ratio,
+        interpolation_method=args.interpolation_method,
+        top_ratio=args.top_ratio,
+        temperature=args.temperature,
+        region_half_window_sec=args.region_half_window_sec,
+    )
+
+    selected_win, details_win = focus.select_keyframes(
+        video=vr_work,
+        query=query,
+        k=args.num_keyframes,
+        min_gap_sec=auto_min_gap_sec,
+        rng=rng,
+    )
+    budget_used = details_win["video_metadata"]["budget_used"]
+
+    if offset != 0 or len(vr_work) < n_full:
+        details_global = remap_sampling_details_to_global(
+            details_win, offset, fps, n_full, dur_full, t0c, t1c, s, e_excl
+        )
+    else:
+        details_global = copy.deepcopy(details_win)
+        details_global["time_window"] = {
+            "start_sec": 0.0,
+            "end_sec": float(dur_full),
+            "start_frame": 0,
+            "end_frame_exclusive": int(n_full),
+            "global_frame_offset": 0,
+        }
+
+    selected_global = [int(x) + offset for x in selected_win]
+    budget_stat = {
+        "budget_used": int(budget_used),
+        "total_frames": int(n_full),
+        "video_duration": float(dur_full),
+        "window_start_frame": int(s),
+        "window_end_frame_exclusive": int(e_excl),
+        "fps": float(fps),
+    }
+    return selected_global, details_global, budget_stat
+
+
+def run_focus_on_video_file(
+    video_file: str,
+    query: str,
+    args,
+    device: str,
+    rng: np.random.Generator,
+) -> Tuple[List[int], Dict, Dict]:
+    """
+    对单个本地视频 + 查询文本跑 FOCUS，返回 (selected_indices, sampling_details, budget_stat)。
+    """
+    if not os.path.isfile(video_file):
+        raise FileNotFoundError(video_file)
+
+    model, vis_processors, text_processors = load_model_and_preprocess(
+        "blip_image_text_matching", args.blip_model, device=device, is_eval=True
+    )
+
+    vr = VideoReader(video_file, ctx=cpu(0))
+    return run_focus_on_video_reader(
+        vr, query, args, device, rng, model, vis_processors, text_processors
+    )
+
+
+# ============================================================================
+# Ray Worker Functions
+# ============================================================================
+
+@ray.remote(num_gpus=1)
+def ray_worker(dp_rank: int, output_json_base_prefix: str, data_slice, args_dict):
+    """Ray worker for distributed processing."""
+    worker_start_time = time.time()
+
+    class Args: pass
+    args = Args()
+    for k, v in args_dict.items():
+        setattr(args, k, v)
+
+    device = 'cuda:0'
+    full_output_dir = os.path.join('./selected_frames', args.dataset_name, args.output_dir)
+    os.makedirs(full_output_dir, exist_ok=True)
+    output_json = os.path.join(full_output_dir, f"{output_json_base_prefix}_rank{dp_rank}.json")
+
+    model, vis_processors, text_processors = load_model_and_preprocess("blip_image_text_matching", args.blip_model,
+                                                                       device=device, is_eval=True)
+
+    video_root = (args.dataset_path + '/videos' if args.dataset_name == 'longvideobench' else args.dataset_path + '/data')
+    rng = np.random.default_rng(args.seed + dp_rank)
+
+    results = []
+    budget_stats = []
+    sampling_details_results = []
+    
+    pbar = tqdm(data_slice, desc=f"Rank {dp_rank}", ncols=100)
+    for original_idx, data in pbar:
+        try:
+            text = data['question']
+            video_file = (os.path.join(video_root, data['video_path'])
+                          if args.dataset_name == 'longvideobench'
+                          else os.path.join(video_root, data['videoID'] + '.mp4'))
+
+            if not os.path.exists(video_file):
+                selected = []
+                keyframe_times_sec: List[float] = []
+                fps_val = 0.0
+                budget_used = 0
+                total_frames = 0
+                video_duration = 0.0
+                sampling_details = {
+                    "coarse_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                    "fine_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                    "arms_info": {"total_arms": 0, "frames_per_arm": 0, "arms": []},
+                    "arm_selection_probabilities": [],
+                    "final_selected_frames": [],
+                    "video_metadata": {"total_frames": 0, "fps": 0.0, "duration_seconds": 0.0, "budget_used": 0}
+                }
+            else:
+                vr_full = VideoReader(video_file, ctx=cpu(0))
+                try:
+                    selected, sampling_details, bstat = run_focus_on_video_reader(
+                        vr_full,
+                        text,
+                        args,
+                        device,
+                        rng,
+                        model,
+                        vis_processors,
+                        text_processors,
+                    )
+                    budget_used = bstat["budget_used"]
+                    total_frames = bstat["total_frames"]
+                    video_duration = bstat["video_duration"]
+                    fps_val = float(bstat["fps"])
+                    keyframe_times_sec = frame_indices_to_times_sec(selected, fps_val)
+                except ValueError as err:
+                    print(f"Time window error on video {original_idx}: {err}")
+                    selected = []
+                    keyframe_times_sec = []
+                    fps_val = float(vr_full.get_avg_fps())
+                    budget_used = 0
+                    total_frames = len(vr_full)
+                    video_duration = float(total_frames) / max(1.0, fps_val)
+                    sampling_details = {
+                        "coarse_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                        "fine_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                        "arms_info": {"total_arms": 0, "frames_per_arm": 0, "arms": []},
+                        "arm_selection_probabilities": [],
+                        "final_selected_frames": [],
+                        "video_metadata": {"total_frames": total_frames, "fps": float(vr_full.get_avg_fps()), "duration_seconds": video_duration, "budget_used": 0},
+                        "time_window": {},
+                    }
+
+            results.append({
+                "original_idx": original_idx,
+                "selected_frames": [int(x) for x in selected],
+                "keyframe_times_sec": keyframe_times_sec,
+                "fps": fps_val,
+            })
+            budget_stats.append({
+                "original_idx": original_idx,
+                "budget_used": int(budget_used),
+                "total_frames": int(total_frames),
+                "video_duration": float(video_duration)
+            })
+            sampling_details_results.append({
+                "original_idx": original_idx,
+                **sampling_details
+            })
+
+            with open(output_json, 'w') as f:
+                json.dump(results, f)
+            pbar.set_postfix({"processed": len(results), "last_selected": len(selected)})
+
+        except Exception as e:
+            print(f"Error on video {original_idx}: {e}")
+            results.append({
+                "original_idx": original_idx,
+                "selected_frames": [],
+                "keyframe_times_sec": [],
+                "fps": 0.0,
+            })
+            budget_stats.append({
+                "original_idx": original_idx,
+                "budget_used": 0,
+                "total_frames": 0,
+                "video_duration": 0.0
+            })
+            sampling_details_results.append({
+                "original_idx": original_idx,
+                "coarse_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                "fine_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                "arms_info": {"total_arms": 0, "frames_per_arm": 0, "arms": []},
+                "arm_selection_probabilities": [],
+                "final_selected_frames": [],
+                "video_metadata": {"total_frames": 0, "fps": 0.0, "duration_seconds": 0.0, "budget_used": 0}
+            })
+            with open(output_json, 'w') as f:
+                json.dump(results, f)
+
+    worker_end_time = time.time()
+    worker_runtime_hours = (worker_end_time - worker_start_time) / 3600
+
+    return output_json, budget_stats, worker_runtime_hours, sampling_details_results
+
+
+# ============================================================================
+# File I/O Functions
+# ============================================================================
+
+def merge_json_files(
+    output_dir: str,
+    output_json_base_prefix: str,
+    dp_size: int,
+    merged_output_path: str,
+    merged_keyframes_path: str,
+):
+    """Merge results from multiple workers；同时写出带时间信息的 keyframes.json。"""
+    all_results: Dict[int, List[int]] = {}
+    all_keymeta: Dict[int, Dict] = {}
+    for dp_rank in range(dp_size):
+        fname = os.path.join(output_dir, f"{output_json_base_prefix}_rank{dp_rank}.json")
+        if os.path.exists(fname):
+            with open(fname, 'r') as f:
+                rank_results = json.load(f)
+                for result in rank_results:
+                    idx = int(result["original_idx"])
+                    frames = result["selected_frames"]
+                    all_results[idx] = frames
+                    fps = float(result.get("fps") or 0.0)
+                    times = result.get("keyframe_times_sec")
+                    if times is None:
+                        times = frame_indices_to_times_sec(frames, fps)
+                    all_keymeta[idx] = {
+                        "frame_indices": frames,
+                        "times_sec": times,
+                        "fps": fps,
+                    }
+        else:
+            print(f"Warning: File {fname} not found")
+
+    idx_union = set(all_results.keys()) | set(all_keymeta.keys())
+    total_videos = max(idx_union) + 1 if idx_union else 0
+    final_results = []
+    final_keyframes = []
+    for i in range(total_videos):
+        if i in all_results:
+            final_results.append(all_results[i])
+        else:
+            final_results.append([])
+        if i in all_keymeta:
+            final_keyframes.append(all_keymeta[i])
+        else:
+            final_keyframes.append({"frame_indices": [], "times_sec": [], "fps": 0.0})
+
+    with open(merged_output_path, 'w', encoding='utf-8') as f:
+        json.dump(final_results, f)
+    print(f"Merged results saved to {merged_output_path}")
+
+    with open(merged_keyframes_path, 'w', encoding='utf-8') as f:
+        json.dump(final_keyframes, f, indent=2)
+    print(f"Merged keyframes (frames + times_sec + fps) saved to {merged_keyframes_path}")
+
+    for dp_rank in range(dp_size):
+        fname = os.path.join(output_dir, f"{output_json_base_prefix}_rank{dp_rank}.json")
+        if os.path.exists(fname):
+            os.remove(fname)
+
+
+def merge_sampling_details_files(sampling_details_results: List[List[Dict]], output_dir: str, merged_sampling_details_path: str):
+    """Merge sampling details from multiple workers."""
+    all_sampling_details = {}
+    for worker_details in sampling_details_results:
+        for detail in worker_details:
+            all_sampling_details[detail["original_idx"]] = detail
+
+    total_videos = max(all_sampling_details.keys()) + 1 if all_sampling_details else 0
+    final_sampling_details = []
+    for i in range(total_videos):
+        if i in all_sampling_details:
+            final_sampling_details.append(all_sampling_details[i])
+        else:
+            final_sampling_details.append({
+                "original_idx": i,
+                "coarse_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                "fine_sampling": {"frame_indices": [], "relevance_scores": [], "temporal_order": [], "budget_used": 0},
+                "arms_info": {"total_arms": 0, "frames_per_arm": 0, "arms": []},
+                "arm_selection_probabilities": [],
+                "final_selected_frames": [],
+                "video_metadata": {"total_frames": 0, "fps": 0.0, "duration_seconds": 0.0, "budget_used": 0}
+            })
+
+    with open(merged_sampling_details_path, 'w') as f:
+        json.dump(final_sampling_details, f, indent=2)
+    print(f"Merged sampling details saved to {merged_sampling_details_path}")
+
+
+# ============================================================================
+# CLI Interface
+# ============================================================================
+
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Keyframe extraction with FOCUS approach (Frame-Optimistic Confidence Upper-bound Selection)')
+    parser.add_argument('--dataset_name', type=str, default='longvideobench',
+                        help='support longvideobench and videomme')
+    parser.add_argument('--dataset_path', type=str, default='./datasets/longvideobench',
+                        help='path to the dataset root')
+    parser.add_argument('--output_dir', type=str, default='focus_blip',
+                        help='algorithm name folder under ./selected_frames/{dataset_name}/')
+    parser.add_argument('--num_keyframes', type=int, default=64,
+                        help='number of keyframes to select')
+    parser.add_argument('--batch_size', type=int, default=32,
+                        help='batch size for BLIP processing')
+    parser.add_argument('--blip_model', type=str, default='large',
+                        help='BLIP model type (base, large)')
+
+    # Hybrid selection parameters
+    parser.add_argument('--top_ratio', type=float, default=0.2,
+                        help='Ratio to determine top-ranked selection count: top_count = ratio * min(num_keyframes, computed_frames) (0~1)')
+    parser.add_argument('--temperature', type=float, default=0.06, help='Softmax temperature for within-arm sampling when using interpolation')
+    parser.add_argument('--min_gap_sec', type=float, default=1.0, help='Fixed minimum temporal gap between selections (sec)')
+
+    # Adaptive min-gap controls
+    parser.add_argument('--disable_gap_below_sec', type=float, default=0.2,
+                        help='Disable min-gap if average spacing <= this (sec)')
+    parser.add_argument('--gap_ratio_of_avg', type=float, default=0.25,
+                        help='min-gap = min(fixed, ratio * average spacing) when not disabled')
+
+    # Proportional zooming controls (coarse -> fine)
+    parser.add_argument('--coarse_every_sec', type=float, default=16.0,
+                        help='Coarse level: sample 1 frame every X seconds')
+    parser.add_argument('--fine_every_sec', type=float, default=1.0,
+                        help='Fine level: sample 1 frame every Y seconds in zoomed regions')
+    parser.add_argument('--zoom_ratio', type=float, default=0.25,
+                        help='Fraction of coarse segments to zoom into (0~1) and also used in final arm selection')
+    parser.add_argument('--min_coarse_segments', type=int, default=8,
+                        help='Ensure at least this many coarse segments')
+    parser.add_argument('--min_zoom_segments', type=int, default=4,
+                        help='Ensure at least this many zoomed regions')
+    parser.add_argument('--region_half_window_sec', type=float, default=None,
+                        help='Half window size (sec) around each coarse center; default=coarse_every_sec/2')
+
+    # FOCUS shared parameters
+    parser.add_argument('--extra_samples_per_region', type=int, default=2,
+                        help='Extra random samples per region for initial variance estimation')
+    parser.add_argument('--min_variance_threshold', type=float, default=1e-6,
+                        help='Minimum variance threshold to avoid division by zero issues in confidence upper-bound')
+
+    # FOCUS specifics
+    parser.add_argument('--fine_uniform_ratio', type=float, default=0.5,
+                        help='Ratio of uniform sampling in fine sampling stage (0~1). Rest will be random sampling.')
+    parser.add_argument('--interpolation_method', type=str, default='nearest', choices=['nearest', 'linear', 'rbf', 'uniform'],
+                        help='Interpolation method for estimating scores within arms')
+    parser.add_argument('--final_min_arms', type=int, default=4,
+                        help='Minimum number of arms to use in final allocation (after zoom_ratio)')
+    parser.add_argument('--final_max_arms', type=int, default=32,
+                        help='Maximum number of arms to use in final allocation (after zoom_ratio)')
+
+    parser.add_argument('--seed', type=int, default=42, help='random seed')
+
+    # 子集评测：不改 lvb_val.json，只跑其中一段
+    parser.add_argument(
+        '--limit',
+        type=int,
+        default=None,
+        help='最多处理多少条样本；只测 1 个视频用 --limit 1（仍用完整 --dataset_path 与 lvb_val.json）',
+    )
+    parser.add_argument(
+        '--offset',
+        type=int,
+        default=0,
+        help='从标注文件第几条开始（0-based），与 --limit 搭配可跑第 N 条：--offset N --limit 1',
+    )
+
+    # 自定义单视频（不读 lvb_val / videomme）
+    parser.add_argument(
+        '--video_path',
+        type=str,
+        default=None,
+        help='本地视频文件路径；与 --query 或 --query_file 一起使用时进入单视频模式',
+    )
+    parser.add_argument(
+        '--query',
+        type=str,
+        default=None,
+        help='与视频对应的自然语言查询（BLIP 图文匹配用）',
+    )
+    parser.add_argument(
+        '--query_file',
+        type=str,
+        default=None,
+        help='从 UTF-8 文本文件读取查询内容；若设置则覆盖 --query',
+    )
+
+    # 仅在时间区间内选关键帧（对整条视频仍用全局帧号输出；FOCUS 的 coarse/fine 步长按「窗口时长」换算）
+    parser.add_argument(
+        '--time_start_sec',
+        type=float,
+        default=None,
+        help='只在此时间（秒）之后选帧；与 --time_end_sec 组成半开区间 [start, end)',
+    )
+    parser.add_argument(
+        '--time_end_sec',
+        type=float,
+        default=None,
+        help='只在此时间（秒）之前选帧；省略则到视频末尾',
+    )
+    return parser.parse_args()
+
+
+def _resolve_custom_query(args) -> str:
+    if args.query_file:
+        with open(args.query_file, encoding='utf-8') as f:
+            q = f.read().strip()
+        if not q:
+            raise ValueError('--query_file 为空')
+        return q
+    if args.query is not None and str(args.query).strip() != '':
+        return args.query.strip()
+    raise ValueError('单视频模式需要同时提供 --video_path 以及 --query 或 --query_file')
+
+
+def main_single_video(args, query: str) -> None:
+    """单视频 + 自定义文本，不走 Ray，结果写入 selected_frames/custom/<output_dir>/。"""
+    video_file = os.path.abspath(os.path.expanduser(args.video_path))
+    print(f"Custom mode: video={video_file}")
+    print(f"Query ({len(query)} chars): {query[:200]}{'...' if len(query) > 200 else ''}")
+
+    rng = np.random.default_rng(args.seed)
+    device = 'cuda:0'
+    selected, sampling_details, bstat = run_focus_on_video_file(
+        video_file, query, args, device, rng
+    )
+
+    dataset_key = 'custom'
+    output_dir = os.path.join('./selected_frames', dataset_key, args.output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    merged_output_path = os.path.join(output_dir, 'selected_frames.json')
+    with open(merged_output_path, 'w', encoding='utf-8') as f:
+        json.dump([selected], f)
+
+    fps_out = float(sampling_details["video_metadata"]["fps"])
+    times_out = frame_indices_to_times_sec(selected, fps_out)
+    keyframes_path = os.path.join(output_dir, 'keyframes.json')
+    with open(keyframes_path, 'w', encoding='utf-8') as f:
+        json.dump(
+            [{"frame_indices": selected, "times_sec": times_out, "fps": fps_out}],
+            f,
+            indent=2,
+        )
+
+    merged_details_path = os.path.join(output_dir, 'sampling_details.json')
+    detail_entry = {"original_idx": 0, **sampling_details}
+    with open(merged_details_path, 'w', encoding='utf-8') as f:
+        json.dump([detail_entry], f, indent=2)
+
+    stats_output_path = os.path.join(output_dir, 'extraction_stats.json')
+    extraction_stats = {
+        "mode": "custom_single_video",
+        "video_path": video_file,
+        "query_preview": query[:500],
+        "budget_usage": {
+            "total_budget_used": bstat["budget_used"],
+            "total_videos_processed": 1,
+            "total_frames": bstat["total_frames"],
+            "total_duration_sec": bstat["video_duration"],
+        },
+        "algorithm_params": {
+            "blip_model": args.blip_model,
+            "num_keyframes": args.num_keyframes,
+            "top_ratio": args.top_ratio,
+            "interpolation_method": args.interpolation_method,
+        },
+        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "output_path": os.path.abspath(merged_output_path),
+        "keyframes_path": os.path.abspath(keyframes_path),
+        "experiment_name": args.output_dir,
+    }
+    with open(stats_output_path, 'w', encoding='utf-8') as f:
+        json.dump(extraction_stats, f, indent=2, ensure_ascii=False)
+
+    print(
+        f"\n已写入:\n  {os.path.abspath(merged_output_path)}\n"
+        f"  {os.path.abspath(keyframes_path)}  (帧号 + 时间秒 + fps)\n"
+        f"  {os.path.abspath(merged_details_path)}"
+    )
+    print(f"共选出 {len(selected)} 帧，BLIP 前向约 {bstat['budget_used']} 次")
+
+
+def main():
+    """Main function for running FOCUS keyframe extraction."""
+    args = parse_arguments()
+
+    if not torch.cuda.is_available():
+        print("CUDA is not available!")
+        return
+
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
+    # 单视频自定义输入：不初始化 Ray
+    if args.video_path:
+        try:
+            query = _resolve_custom_query(args)
+        except ValueError as e:
+            print(f"错误: {e}")
+            return
+        main_single_video(args, query)
+        return
+
+    gpu_count = torch.cuda.device_count()
+    print(f"Available GPUs: {gpu_count}")
+
+    ray.init()
+    DP_SIZE = min(8, gpu_count)
+    print(f"Using {DP_SIZE} workers")
+
+    time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    output_json_base_prefix = f'keyframe_focus_{args.dataset_name}_{time_stamp}'
+
+    output_dir = os.path.join('./selected_frames', args.dataset_name, args.output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    merged_output_path = os.path.join(output_dir, 'selected_frames.json')
+    merged_keyframes_path = os.path.join(output_dir, 'keyframes.json')
+    merged_sampling_details_path = os.path.join(output_dir, 'sampling_details.json')
+
+    if args.dataset_name == 'longvideobench':
+        label_path = os.path.join(args.dataset_path, 'lvb_val.json')
+    elif args.dataset_name == 'videomme':
+        label_path = os.path.join(args.dataset_path, 'videomme.json')
+    else:
+        raise ValueError('dataset_name: longvideobench or videomme')
+
+    if not os.path.exists(label_path):
+        raise OSError('the label file does not exist')
+    with open(label_path, 'r') as f:
+        full_datas = json.load(f)
+    n_full = len(full_datas)
+    start = max(0, int(args.offset))
+    if start >= n_full:
+        raise ValueError(f'--offset {start} >= dataset size {n_full}')
+    if args.limit is None:
+        end = n_full
+    else:
+        end = min(start + max(0, int(args.limit)), n_full)
+    datas = full_datas[start:end]
+    print(f"Dataset size: {n_full}; processing slice [{start}, {end}) -> {len(datas)} videos")
+
+    total = len(datas)
+    per_rank = (total + DP_SIZE - 1) // DP_SIZE
+
+    original_indices = list(range(total))
+    shuffled_indices = original_indices.copy()
+    random.shuffle(shuffled_indices)
+    print(f"Shuffled data indices for load balancing across {DP_SIZE} workers")
+
+    args_dict = vars(args)
+    ray_tasks = []
+    for dp_rank in range(DP_SIZE):
+        start = dp_rank * per_rank
+        end = min(start + per_rank, total)
+        shuffled_slice_indices = shuffled_indices[start:end]
+        data_slice = [(orig_idx, datas[orig_idx]) for orig_idx in shuffled_slice_indices]
+        if len(data_slice) > 0:
+            ray_tasks.append(ray_worker.remote(dp_rank, output_json_base_prefix, data_slice, args_dict))
+
+    print("Processing videos in parallel...")
+    ray_results = ray.get(ray_tasks)
+
+    all_budget_stats = []
+    all_sampling_details = []
+    total_gpu_hours = 0.0
+    for _, stats, worker_hours, sampling_details in ray_results:
+        all_budget_stats.extend(stats)
+        all_sampling_details.append(sampling_details)
+        total_gpu_hours += worker_hours
+
+    print("Merging results...")
+    merge_json_files(output_dir, output_json_base_prefix, DP_SIZE, merged_output_path, merged_keyframes_path)
+    print("Merging sampling details...")
+    merge_sampling_details_files(all_sampling_details, output_dir, merged_sampling_details_path)
+
+    total_budget_used = sum(s.get('budget_used', 0) for s in all_budget_stats)
+    total_frames = sum(s.get('total_frames', 0) for s in all_budget_stats)
+    total_duration = sum(s.get('video_duration', 0.0) for s in all_budget_stats)
+
+    frame_speedup = (total_frames / total_budget_used) if total_budget_used > 0 else 0.0
+    time_speedup = (total_duration / total_budget_used) if total_budget_used > 0 else 0.0
+
+    print("\n" + "=" * 60)
+    print("BUDGET USAGE STATISTICS")
+    print("=" * 60)
+    print(f"Total videos processed: {len(all_budget_stats)}")
+    print(f"Total budget used (BLIP forward passes): {total_budget_used:,}")
+    print(f"Total frames in all videos: {total_frames:,}")
+    print(f"Total video duration: {total_duration:.1f} seconds ({total_duration/3600:.2f} hours)")
+    print(f"  Frame-based speedup: {frame_speedup:.2f}x")
+    print(f"  Time-based  speedup: {time_speedup:.2f}x")
+    print("=" * 60)
+    print("Method: FOCUS (Frame-Optimistic Confidence Upper-bound Selection)")
+    print(f"  Extra samples per region: {args.extra_samples_per_region}")
+    print(f"  Min variance threshold: {args.min_variance_threshold}")
+    print(f"  Fine uniform ratio: {args.fine_uniform_ratio:.2f}")
+    print(f"  Interpolation method: {args.interpolation_method}")
+    print(f"  Top-ranked ratio: {args.top_ratio:.2f}")
+    print(f"  Final selection arms: zoom_ratio={args.zoom_ratio}, bounds=[{args.final_min_arms}, {args.final_max_arms}]")
+    print("=" * 60)
+
+    stats_output_path = os.path.join(output_dir, "extraction_stats.json")
+    extraction_stats = {
+        "gpu_usage": {
+            "total_gpu_hours": total_gpu_hours,
+            "num_workers": DP_SIZE,
+            "avg_gpu_hours_per_worker": (total_gpu_hours / DP_SIZE) if DP_SIZE > 0 else 0.0
+        },
+        "budget_usage": {
+            "total_budget_used": total_budget_used,
+            "total_videos_processed": len(all_budget_stats),
+            "total_frames": total_frames,
+            "total_duration_sec": total_duration,
+            "total_duration_hours": total_duration / 3600 if total_duration else 0.0,
+            "frame_speedup": frame_speedup,
+            "time_speedup": time_speedup
+        },
+        "algorithm_params": {
+            "blip_model": args.blip_model,
+            "top_ratio": args.top_ratio,
+            "extra_samples_per_region": args.extra_samples_per_region,
+            "min_variance_threshold": args.min_variance_threshold,
+            "temperature": args.temperature,
+            "fine_uniform_ratio": args.fine_uniform_ratio,
+            "interpolation_method": args.interpolation_method,
+            "final_min_arms": args.final_min_arms,
+            "final_max_arms": args.final_max_arms
+        },
+        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "output_path": merged_output_path,
+        "keyframes_path": merged_keyframes_path,
+        "experiment_name": args.output_dir
+    }
+    with open(stats_output_path, 'w') as f:
+        json.dump(extraction_stats, f, indent=2)
+
+    print(f"\nExtraction statistics saved to: {stats_output_path}")
+    print(
+        f"\nFOCUS keyframe extraction completed.\n"
+        f"  {merged_output_path}\n"
+        f"  {merged_keyframes_path}  (每条约 frame_indices / times_sec / fps)"
+    )
+    ray.shutdown()
+
+
+if __name__ == '__main__':
+    main()

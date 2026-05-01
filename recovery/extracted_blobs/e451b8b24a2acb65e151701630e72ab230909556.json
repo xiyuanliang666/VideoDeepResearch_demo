@@ -1,0 +1,27 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/1.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "temple on water with tiered roof",
+  "round": 1,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v2/video_dr_agent/out_put_frame/1_r1_focus",
+  "num_frames": 5,
+  "times_sec": [
+    94.683333,
+    131.583333,
+    314.666667,
+    317.866667,
+    331.85
+  ],
+  "frame_indices": [
+    5681,
+    7895,
+    18880,
+    19072,
+    19911
+  ],
+  "fps": 60.0,
+  "budget_used": 162
+}

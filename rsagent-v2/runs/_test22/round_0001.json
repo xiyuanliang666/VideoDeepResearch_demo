@@ -1,0 +1,150 @@
+{
+  "round": 1,
+  "termination": null,
+  "research_assistant_raw": "<tool_call>\n{\"name\": \"focus_select_keyframes\", \"arguments\": {\"question\": \"close-up of robot's chest with text\", \"time_start_sec\": 106.72, \"time_end_sec\": 186.76}}\n</tool_call>",
+  "parsed_tool_calls": [
+    {
+      "raw_text": "{\"name\": \"focus_select_keyframes\", \"arguments\": {\"question\": \"close-up of robot's chest with text\", \"time_start_sec\": 106.72, \"time_end_sec\": 186.76}}",
+      "name": "focus_select_keyframes",
+      "arguments": {
+        "question": "close-up of robot's chest with text",
+        "time_start_sec": 106.72,
+        "time_end_sec": 186.76
+      },
+      "parse_error": null
+    }
+  ],
+  "tool_runs": [
+    {
+      "name": "focus_select_keyframes",
+      "arguments": {
+        "question": "close-up of robot's chest with text",
+        "time_start_sec": 106.72,
+        "time_end_sec": 186.76
+      },
+      "raw_output": "{\"ok\": false, \"tool\": \"focus_select_keyframes\", \"error\": \"ModuleNotFoundError: No module named 'decord'\", \"install_hint\": \"pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）\"}",
+      "parse_error": null
+    }
+  ],
+  "critic_user_payload": "{\"schema_version\": 1, \"research_question\": \"What is the name of the humanoid robot in the video?\", \"round_index\": 1, \"research_assistant_excerpt\": \"<tool_call>\\n{\\\"name\\\": \\\"focus_select_keyframes\\\", \\\"arguments\\\": {\\\"question\\\": \\\"close-up of robot's chest with text\\\", \\\"time_start_sec\\\": 106.72, \\\"time_end_sec\\\": 186.76}}\\n</tool_call>\", \"tool_runs\": [{\"name\": \"focus_select_keyframes\", \"arguments\": {\"question\": \"close-up of robot's chest with text\", \"time_start_sec\": 106.72, \"time_end_sec\": 186.76}, \"raw_output\": \"{\\\"ok\\\": false, \\\"tool\\\": \\\"focus_select_keyframes\\\", \\\"error\\\": \\\"ModuleNotFoundError: No module named 'decord'\\\", \\\"install_hint\\\": \\\"pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）\\\"}\", \"parse_error\": null}]}",
+  "critic_assistant": "## Critic report (round 1)\n\n### FOCUS keyframes (`focus_select_keyframes`)\n**Verdict**: FAILED — ModuleNotFoundError: No module named 'decord'\n**Raw excerpt**:\n```json\n{\"ok\": false, \"tool\": \"focus_select_keyframes\", \"error\": \"ModuleNotFoundError: No module named 'decord'\", \"install_hint\": \"pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）\"}\n```",
+  "research_feedback": "## Critic report (round 1)\n\n### FOCUS keyframes (`focus_select_keyframes`)\n**Verdict**: FAILED — ModuleNotFoundError: No module named 'decord'\n**Raw excerpt**:\n```json\n{\"ok\": false, \"tool\": \"focus_select_keyframes\", \"error\": \"ModuleNotFoundError: No module named 'decord'\", \"install_hint\": \"pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）\"}\n```",
+  "focus_injected_image_paths": [],
+  "research_messages_redacted": [
+    {
+      "role": "system",
+      "content": "You are the **Research** model in a video deep-research loop. Solve the user’s task with **video evidence** and **web search**, following a **written Research Plan** that you already produced in an earlier turn (Host “Planning phase”) and the subsequent “Execution phase” instructions.\n\n## What you see in the transcript\n\n- **User task / question** (may be any natural language; answer in the same language unless the user asks otherwise).\n- **Uniformly sampled overview frames** (~20 typical): a **sparse** timeline, not a full watch.\n- The Host may **omit the full video** in the first multimodal user message; the **same local file** is still available to **`focus_select_keyframes`** via the host default path. If a full **video_url** is attached, still treat overview frames as a coarse sample.\n\n## Three phases (aligned with the Host)\n\n**Phase A — Planning (already done before this system applies to execution)**  \nYou should have output a **detailed Research Plan** with: goal, gaps, ordered steps (each with intended tool(s) as needed, e.g. `focus_select_keyframes` and/or `deep_research_web_search`), BLIP-style FOCUS query drafts when a FOCUS step is planned, web keyword ideas, and a **pre-final checklist**. That turn had **no `<tool_call>`**.\n\n**Phase B — Execution (you are here now)**  \n- Each assistant turn that still needs evidence must include one or more **`<tool_call>`** blocks.\n- In your **reasoning text**, name the **plan step** you are executing (e.g. “Step 3”).\n- **Every tool call must map to a plan step** (or a short revision you stated after critic feedback).\n- Use tools **liberally**: prefer multiple focused calls over one vague call. Gather **enough visual and web proof** before finishing.\n- **Tool order is not fixed globally** — your **plan** decides whether to call FOCUS or search first for each sub-question. If a step needs fine-grained **this-video** evidence and FOCUS is enabled on the host, you may use **`focus_select_keyframes`** with the **short query** you drafted in the plan (or an improved variant) and, when the Host provided a **uniform overview schedule** with approximate times, pass **`time_start_sec` / `time_end_sec`** so the tool searches the right segment. If a step is **purely external** and does not depend on disambiguating this footage, rely on web search without FOCUS for that part.\n\n**Phase C — Final answer**  \n- Reply with **plain text only** and **no `<tool_call>`** when your plan’s **checklist** is satisfied: visual claims checked, web facts aligned, no important ambiguity left.\n- Until then, **do not** emit a no-tool reply.\n\n## Tools (exact names)\n\nUse **only** these tools, in this XML-tagged JSON form (one block per call; JSON5-style keys allowed):\n\n<tool_call>\n{\"name\": \"<tool_name>\", \"arguments\": { ... }}\n</tool_call>\n\n### 1) `focus_select_keyframes`\n\n**Availability:** Real backend only if the host enabled FOCUS (e.g. CLI `--focus-frame-set-dir`). If not enabled, do not rely on this tool name.\n\n**Role:** Run FOCUS / BLIP on the **local video**: select frames matching a **short, concrete** visual query. Outputs under  \n`<frame_set_dir>/{video_stem}_r{round}_{frame_caption}/` (frames, keyframes.json, meta.json).\n\n**Requirements:** CUDA on the tool host; failures return JSON with `ok: false`.\n\n**Success payload (summary):** `ok`, `frames` (each with `file`, `frame_index`, `time_sec`), `times_sec`, etc.\n\n**Arguments:**\n\n| Field | Required? | Notes |\n|-------|-----------|--------|\n| **`question`** or **`query`** | **Yes** | One visual sub-question; BLIP-friendly (objects, actions, on-screen text cues). |\n| **`video_path`** / **`video`** | Prefer **omit** | Default = host video (`--video` / env). Only pass if the user message contains that **exact** path. Never invent names like `video.mp4`. |\n| **`round`** | No | Harness fills current loop round for naming. |\n| **`frame_caption`** | No | Folder slug; default `focus`. |\n| **`num_keyframes`** | No | Smaller = faster; omit for pipeline default (**8** keyframes). |\n| **`time_start_sec` / `time_end_sec`** | No | **Recommended** when you know a coarse interval (e.g. from the Host’s uniform-overview `#` → `time_sec` table): set a window that covers the relevant rows plus a few seconds of padding. Omit only if the whole timeline is in scope. |\n\n**Cost:** Expensive. One focused call per **distinct** visual need; avoid vague whole-video queries. Prefer **narrow time windows** when possible.\n\n### 2) `deep_research_web_search`\n\n**Role:** Parallel Serper workers return **raw** titles/snippets/URLs — **no** built-in LLM summary. You read and reconcile with the video and task.\n\n**Arguments:** **`query`** or **`question`** — tight keywords for **one** sub-task per call.\n\n## Critic and FOCUS images\n\n- After tools run, you receive **critic text**. For successful FOCUS, the host may append **a few critic-selected keyframe images**; older injected FOCUS images are replaced by a short `<focus_keyframes_omitted …>` placeholder to save context. The **initial** user message (task + overview + optional video) is kept.\n- Treat critic text as **evidence**, not permission to skip remaining plan steps.\n\n## Output discipline\n\n- **Exploring:** include `<tool_call>` for each tool you need **this** turn.\n- **Done:** no `<tool_call>` — only the **complete** answer; tie claims to **video** vs **web** when it matters.\n- Be concise in **tool arguments**; be thorough in the **final** answer."
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGB...[redacted base64]..."
+          }
+        },
+        {
+          "type": "text",
+          "text": "What is the name of the humanoid robot in the video?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "[Host — Planning phase]\n\nBefore any tool calls in later turns, write a **detailed Research Plan** using the **uniform overview frames**, any **Host schedule text** appended below (timestamps / frame indices), and the **user task** already in context.\n\n**Hard rule for this turn:** output **plain text only** — do **not** include any `<tool_call>` blocks.\n\nYour plan **must** include:\n1. **Goal restatement** and what counts as a complete answer.\n2. **What you can already infer** from the uniform frames (and the schedule, if provided) vs **information gaps**.\n3. **Ordered steps table**: for each step — sub-question, **intended tool** (`focus_select_keyframes` and/or `deep_research_web_search` when useful), **evidence you expect**, link to the main question.\n4. **Video tooling:** If a step needs **finer-grained local evidence** than the overview strip, and **`focus_select_keyframes`** is enabled on the host, you may plan that step with a **short BLIP-style query draft** plus an **approximate time window** (from the overview schedule) to pass as `time_start_sec` / `time_end_sec` in execution. If the task is **purely external** and does not depend on this footage, state an explicit **reason** steps can rely on web-only evidence.\n5. **Web steps**: separate, focused search steps with keyword ideas (not one giant query).\n6. **Pre-final checklist**: what visual claims and which web sources must be satisfied before you stop calling tools.\n\nBe concrete enough that the following execution rounds can follow this plan step by step.\n\n[Host — Uniform overview schedule]\n\nThe table below matches the **uniformly sampled overview images** in your **first** user message: they appear as consecutive `image_url` parts **in this row order** (after any leading `video_url`, if present), **before** the final task text part.\n\n**User task / question (for planning, repeat):**\nWhat is the name of the humanoid robot in the video?\n\nVideo stats (container FPS ≈ 25.0; reported frame count ≈ 7338). Times are **approximate** from `frame_index / fps`.\n\n| # (1-based) | source `frame_index` | approx `time_sec` | JPEG |\n|---:|---:|---:|---|\n| 1 | 0 | 0.000 | `frame_000.jpg` |\n| 2 | 667 | 26.680 | `frame_001.jpg` |\n| 3 | 1334 | 53.360 | `frame_002.jpg` |\n| 4 | 2001 | 80.040 | `frame_003.jpg` |\n| 5 | 2668 | 106.720 | `frame_004.jpg` |\n| 6 | 3335 | 133.400 | `frame_005.jpg` |\n| 7 | 4002 | 160.080 | `frame_006.jpg` |\n| 8 | 4669 | 186.760 | `frame_007.jpg` |\n| 9 | 5336 | 213.440 | `frame_008.jpg` |\n| 10 | 6003 | 240.120 | `frame_009.jpg` |\n| 11 | 6670 | 266.800 | `frame_010.jpg` |\n| 12 | 7337 | 293.480 | `frame_011.jpg` |\n\n**FOCUS hint:** When you later call `focus_select_keyframes`, pass **`time_start_sec`** and **`time_end_sec`** to restrict search to the on-timeline window that covers the overview rows relevant to your sub-question (add a small padding of a few seconds when unsure)."
+    },
+    {
+      "role": "assistant",
+      "content": "**Research Plan: What is the name of the humanoid robot in the video?**\n\n---\n\n**1. Goal Restatement & Completion Criteria**\n\n- **Goal**: Identify the exact name of the humanoid robot featured in the video.\n- **Complete Answer**: A definitive name (e.g., “GOAL3”, “Moonshot”, or another branded identifier) confirmed via visual evidence from the video and/or corroborated by external sources. The answer must be tied to a specific frame or segment where the robot’s name or branding is visible.\n\n---\n\n**2. What Can Be Inferred from Overview Frames vs. Information Gaps**\n\n- **Inferred**: \n  - The humanoid robot appears in frames 5–8 (approx. 106.720–186.760 seconds), shown in multiple poses and interacting with humans.\n  - The robot has a white body with red accents and a logo on its chest.\n  - In frame 5, the robot’s chest clearly shows the word “MOONSHOT” and a logo.\n  - In frame 7, the robot is shown with the name “GOAL3” visible on its chest.\n  - In frame 8, the robot is shown with “GOAL3” again.\n  - A person identified as “Tamon Miyake, Assistant Professor, Waseda University” is standing next to the robot in frame 7, suggesting an academic or research context.\n\n- **Gaps**:\n  - The robot’s full official name is not explicitly stated in the overview frames — it appears to have two names (“MOONSHOT” and “GOAL3”) on its chest, which may refer to different versions or projects.\n  - No clear audio or on-screen text outside the robot’s branding identifies its official name.\n  - Need to verify if “MOONSHOT” and “GOAL3” are the same robot or different models.\n\n---\n\n**3. Ordered Steps Table**\n\n| Step | Sub-Question | Tool | Evidence Expected | Link to Main Question |\n|------|--------------|------|-------------------|------------------------|\n| 1 | What is the name of the humanoid robot shown in the video? | `focus_select_keyframes` | Close-up frames of the robot’s chest to read text clearly. | Directly answers the main question. |\n| 2 | Is “MOONSHOT” and “GOAL3” referring to the same robot or different models? | `deep_research_web_search` | Academic or news articles mentioning “GOAL3” or “MOONSHOT” robot. | Confirms if the robot has multiple names or is a single model. |\n| 3 | Who is the researcher or institution associated with the robot? | `focus_select_keyframes` + `deep_research_web_search` | Frame with “Tamon Miyake, Assistant Professor, Waseda University” + web search for “GOAL3 robot Waseda University”. | Contextualizes the robot’s origin and validates the name. |\n| 4 | Is “GOAL3” the official name of the robot? | `deep_research_web_search` | Official project page, academic paper, or press release naming the robot as “GOAL3”. | Final confirmation of the robot’s name. |\n\n---\n\n**4. Video Tooling (FOCUS)**\n\n- **Step 1**: Use `focus_select_keyframes` with a query:  \n  `“close-up of robot’s chest with text”`  \n  Time window: `time_start_sec=106.720`, `time_end_sec=186.760` (covers frames 5–8).\n\n- **Step 3**: Use `focus_select_keyframes` with a query:  \n  `“Tamon Miyake talking to robot”`  \n  Time window: `time_start_sec=160.080`, `time_end_sec=186.760` (covers frame 7).\n\n---\n\n**5. Web Search Steps**\n\n- **Step 2**: Search for:  \n  `\"GOAL3 robot\" OR \"MOONSHOT robot\" OR \"Waseda University humanoid robot\"`\n\n- **Step 4**: Search for:  \n  `\"GOAL3 robot official name\" OR \"Waseda University GOAL3 robot\"`\n\n---\n\n**6. Pre-Final Checklist**\n\n- ✅ Video evidence: Close-up frames of the robot’s chest showing “MOONSHOT” and “GOAL3”.\n- ✅ Video evidence: Frame with “Tamon Miyake, Assistant Professor, Waseda University” next to the robot.\n- ✅ Web evidence: At least one source confirming “GOAL3” as the official name of the robot from Waseda University.\n- ✅ Web evidence: Clarification if “MOONSHOT” and “GOAL3” refer to the same robot or different models.\n\n---"
+    },
+    {
+      "role": "user",
+      "content": "[Host — Execution phase]\n\nYour Research Plan is recorded above. **Execution rules:**\n- Each tool round: in your reasoning, state **which plan step** you are executing (e.g. Step 2).\n- Use `<tool_call>` to carry out the plan **in order**. After critic feedback, you may **briefly revise** later steps if evidence demands it — say so at the start of the next assistant turn, then continue.\n- **Use tools** until you have **enough evidence** for the user task (video and/or web, as your plan requires); do not stop after a single shallow step if the checklist is unfinished.\n- The run ends only when you reply **with no `<tool_call>`** (final answer). Until the checklist in your plan is satisfied, keep issuing tools when more evidence is needed."
+    },
+    {
+      "role": "assistant",
+      "content": "<tool_call>\n{\"name\": \"focus_select_keyframes\", \"arguments\": {\"question\": \"close-up of robot's chest with text\", \"time_start_sec\": 106.72, \"time_end_sec\": 186.76}}\n</tool_call>"
+    },
+    {
+      "role": "user",
+      "content": "## Critic report (round 1)\n\n### FOCUS keyframes (`focus_select_keyframes`)\n**Verdict**: FAILED — ModuleNotFoundError: No module named 'decord'\n**Raw excerpt**:\n```json\n{\"ok\": false, \"tool\": \"focus_select_keyframes\", \"error\": \"ModuleNotFoundError: No module named 'decord'\", \"install_hint\": \"pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）\"}\n```"
+    }
+  ],
+  "critic_messages_redacted": [
+    {
+      "role": "system",
+      "content": "You are the **Critic** (review and evidence integration) model in the Video DeepResearch pipeline.\n\n## Input\nYou receive structured JSON (assembled by the framework) containing:\n- `research_question`: the **original question** the Research Agent is working on (highest-priority factual and intent anchor).\n- `round_index`: current loop round.\n- `research_assistant_excerpt`: excerpt of this round's Research model output (including tool-call intent).\n- `tool_runs`: raw outputs of tools executed this round (each with `name`, `arguments`, `raw_output`, `parse_error`).\n\n## Duty 1: Judge whether each tool call succeeded\n1. **FOCUS keyframe tool** (`focus_select_keyframes`)\n   - Parse JSON in `raw_output`.\n   - **Success**: `ok` is true, `times_sec` is a non-empty list, and its length equals the expected count in `arguments.num_keyframes` for this call; if `num_keyframes` is absent, fall back to: `ok` is true and `len(times_sec) > 0`.\n   - **Failure**: `ok` is false, JSON parse error, `times_sec` missing/empty, or count clearly mismatches expected.\n\n2. **Web search tool** (`deep_research_web_search`)\n   - Parse entries in `raw_output` under `workers[*].results`.\n   - Count a row as **error** if: `url` is empty, or `title`/`snippet` indicates Serper/network failure (e.g. \"Search failed\", HTTP error text).\n   - **Failure**: error rows are **≥ 50%** of all countable rows (threshold is configurable in code, default 0.5).\n   - **Success**: otherwise treat the search call as overall successful (some bad links may remain).\n\n## Duty 2: Summarization and deep read (by tool type)\n- **FOCUS (when technically successful per Duty 1)**:\n  1. You receive a separate user message with a **frame metadata table** (`file`, `time_sec`, `frame_index`) and the **focus query** used by the Research agent.\n  2. Pick **at most 3** frames that are **most useful** for answering `research_question` together with that focus query. You only see metadata, not pixels—use time/index and the stated query intent.\n  3. Output **one JSON object** only (schema in that message). Paths must match the table **exactly**.\n  4. In the **final critic report** to Research, briefly list those picks with one-line reasons each. **Do not** paste the full raw tool JSON in the final report (it is still stored in run traces).\n- **FOCUS (when failed)**: Report failure and a **short** raw excerpt only; no frame ranking.\n- **Search (when successful)**:\n  1. Using only each result's **Title** and **Snippet** (and URL domain), score **relevance** to `research_question`, **authority** (e.g. .gov, .edu, reputable technical sources), and **recency** if inferable from title/snippet.\n  2. Pick **at most 3** URLs for the framework to fetch body text via **Jina Reader** (you only output them in structured JSON with a short reason each).\n  3. After Jina returns page bodies, synthesize an answer to **research_question**: clear structure, cite sources; **do not** invent facts absent from the pages.\n\n## Duty 3: Conflict resolution\nIf page text or snippets **conflict** with explicit settings, entities, or premises in **research_question**:\n- **Prefer `research_question` and the Research Agent's stated framing**; briefly note where the web source disagrees with the question's premises; **do not** override the question's given facts with web content.\n\n## Output style\n- Write the final reply to the Research Agent in **English**, unless `research_question` explicitly requires another language.\n- Stay objective; state uncertainty clearly where appropriate."
+    },
+    {
+      "role": "assistant",
+      "content": "## Critic report (round 1)\n\n### FOCUS keyframes (`focus_select_keyframes`)\n**Verdict**: FAILED — ModuleNotFoundError: No module named 'decord'\n**Raw excerpt**:\n```json\n{\"ok\": false, \"tool\": \"focus_select_keyframes\", \"error\": \"ModuleNotFoundError: No module named 'decord'\", \"install_hint\": \"pip install decord  （或与项目一致：pip install -r requirements-video-dr-agent.txt）\"}\n```"
+    }
+  ]
+}

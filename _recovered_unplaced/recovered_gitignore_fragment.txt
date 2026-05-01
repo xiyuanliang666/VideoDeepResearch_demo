@@ -1,0 +1,10 @@
+# Local secrets (video_dr_agent pack-in config)
+video_dr_agent/.env
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+runs/

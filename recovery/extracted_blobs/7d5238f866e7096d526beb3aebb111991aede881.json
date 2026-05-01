@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/9.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "Identify visual landmarks in the video that confirm the location is Cincinnati, Ohio.",
+  "round": 3,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v2/video_dr_agent/out_put_frame/9_r3_focus",
+  "num_frames": 8,
+  "times_sec": [
+    135.76,
+    152.52,
+    229.96,
+    417.8,
+    421.04,
+    428.92,
+    448.08,
+    454.44
+  ],
+  "frame_indices": [
+    3394,
+    3813,
+    5749,
+    10445,
+    10526,
+    10723,
+    11202,
+    11361
+  ],
+  "fps": 25.0,
+  "budget_used": 269
+}

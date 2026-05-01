@@ -1,0 +1,33 @@
+{
+  "tool": "focus_select_keyframes",
+  "video_path": "/mnt/sda/Datasets/VideoDR/video/56.mp4",
+  "video_path_in_arguments": null,
+  "used_default_video_fallback": false,
+  "question": "Man in front of ‘群核科技’ backdrop",
+  "round": 2,
+  "frame_caption": "focus",
+  "output_dir": "/mnt/sda/Projects/video-deep-research/rsagent-v2/video_dr_agent/out_put_frame/56_r2_focus_0f9e9b8f",
+  "num_frames": 8,
+  "times_sec": [
+    377.76,
+    377.88,
+    378.64,
+    379.16,
+    379.96,
+    380.52,
+    380.8,
+    389.52
+  ],
+  "frame_indices": [
+    9444,
+    9447,
+    9466,
+    9479,
+    9499,
+    9513,
+    9520,
+    9738
+  ],
+  "fps": 25.0,
+  "budget_used": 28
+}

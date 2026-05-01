@@ -1,0 +1,30 @@
+{
+  "gpu_usage": {
+    "total_gpu_hours": 0.07308143344190386,
+    "num_workers": 4,
+    "avg_gpu_hours_per_worker": 0.018270358360475965
+  },
+  "budget_usage": {
+    "total_budget_used": 68,
+    "total_videos_processed": 1,
+    "total_frames": 5699,
+    "total_duration_sec": 190.15663333333333,
+    "total_duration_hours": 0.052821287037037035,
+    "frame_speedup": 83.80882352941177,
+    "time_speedup": 2.7964210784313726
+  },
+  "algorithm_params": {
+    "blip_model": "large",
+    "top_ratio": 0.2,
+    "extra_samples_per_region": 2,
+    "min_variance_threshold": 1e-06,
+    "temperature": 0.06,
+    "fine_uniform_ratio": 0.5,
+    "interpolation_method": "nearest",
+    "final_min_arms": 4,
+    "final_max_arms": 32
+  },
+  "timestamp": "2026-04-02 16:51:09",
+  "output_path": "./selected_frames/longvideobench/focus_aks_smoke/selected_frames.json",
+  "experiment_name": "focus_aks_smoke"
+}

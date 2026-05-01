@@ -1,0 +1,50 @@
+0ad0faf8049b312cb58cbbd812a5365e4d73fc45	py_like_txt	text/plain	"""Video DeepResearch agent framework (vLLM Qwen3-VL research + OpenAI-compatible critic)."""  from video_dr_agent.critic_context import CriticContext 
+132e50b47e3615e59194264f2d57816229ce1058	py_like_txt	text/plain	--- name: Video DeepResearch 框架 overview: 在 `rsagent` 下新增轻量、解耦的 Video DeepResearch 主循环包：**Research 走本地 vLLM 部署的 Qwen3-VL**（OpenAI �
+1d5e185a812d70b40a5614828c9c76ee06b1b893	py_like_txt	text/plain	"""Video DeepResearch agent framework (vLLM Qwen3-VL research + OpenAI-compatible critic)."""  from video_dr_agent.critic_context import CriticContext 
+2894419425eeeae5830ec37a115f8186c1fa347e	py_like_txt	text/plain	""" Critic system prompt and staged user-prompt templates (deep research: FOCUS + web search + Jina). """ 
+2f1d12674b6e156518cb2d98c6881139ad8d61bf	py_like_txt	text/plain	"""Placeholder tool / critic implementations."""  from __future__ import annotations 
+30b31cae990cdfdbf117e73ca9adff7bafbf34da	py_like_txt	text/plain	""" 示例工具：`ToolDispatcher` 的最小实现模板。  
+370ee47fff92c931ea018bf726c89236b4cec527	py	text/x-script.python	#!/usr/bin/env python3 """ CLI entry for video_dr_agent. 
+4d9cba22c30e724e30d3f620e26f671636dd151a	py_like_txt	text/plain	""" Run ``test_data_frame/uniform_sample_frames.py`` before the research loop when configured. """ 
+6441dafe2bcc5b982291f89f2f36348172705a06	sh	text/x-shellscript	#!/bin/bash  # FOCUS Keyframe Extraction Example Script 
+6600c5bf84c98f677b79ebbbfcb227bfa7f6b5cb	py_like_txt	text/plain	--- name: rsagent-v2 流程与 Critic 改造 overview: 在 [rsagent-v2](/mnt/sda/Projects/video-deep-research/rsagent-v2) 中：以**强制「详细 Research Plan → 再按计划�
+680e1119ad4dacd26f0fb93b7eca5e07c0e52402	sh	text/x-shellscript	#!/usr/bin/env bash # 在已配置好的 AKS conda 环境中跑 1 条 LongVideoBench 样本（FOCUS 目录下已含 datasets/longvideobench_smoke） set -euo pipefail 
+6c0d2f4d857600ca275e20a779a48f27bb72b1bc	py_like_txt	text/plain	""" Run ``test_data_frame/uniform_sample_frames.py`` before the research loop when configured. """ 
+6c2ea8f61f38105973d87027cb73da849996877c	py_like_txt	text/plain	"""Research-side message buffer: prompt, research assistants, critic user feedback only."""  from __future__ import annotations 
+75a47a3006a3fc3481716f8200b83ef2b0c0ef83	py_like_txt	text/plain	"""Parse <tool_call> blocks (VDR-style)."""  from __future__ import annotations 
+7c07d5cdabd2c1680e91910446f50b381f90f554	py	text/x-script.python	#!/usr/bin/env python3 """ Offline smoke: core ``run_loop`` + stub tools/critic + trace JSON (no vLLM). 
+7ed8bd197792149d7e258884fb5b409015ef0126	py	text/x-script.python	#!/usr/bin/env python3 """ 将 FOCUS 筛选结果整理到独立子目录： 
+7ff8553e66f2df80e721604d4316c6661f47f869	py_like_txt	text/plain	""" Critic system prompt and staged user-prompt templates (deep research: FOCUS + web search + Jina).  
+823ea7a0bd55199143571bb1c1be156d0897d9e2	py	text/x-script.python	#!/usr/bin/env python3 """ Lightweight checks that the Video DeepResearch stack imports and wires correctly: 
+82e37a41735c3441622547bec1574fed51dec00f	py_like_txt	text/plain	""" Main research loop (Video DeepResearch plan).  
+902b13ccfa02c550fe05ddac03e791884ce74b84	py_like_txt	text/plain	""" Protocols for Video DeepResearch (see repo plan: research/critic separation).  
+91088d8981ad943901256c6b6620471e77b8c6df	py_like_txt	text/plain	.env __pycache__/ *.pyc 
+93007a68977eea4336b86bf68e928b83ae52b26d	py_like_txt	text/plain	"""Research-side message buffer: prompt, research assistants, critic user feedback only."""  from __future__ import annotations 
+9a7b01fe3dfba90eeff6641b8159404c60fbfbc0	py	text/x-script.python	#!/usr/bin/env python3 """ CLI entry for video_dr_agent. 
+ab785cd6c7b952e6549f04e68876d5dc0dfc840a	py_like_txt	text/plain	""" Deep-research Critic: FOCUS technical check + **Top-3 frame ranking** (metadata) for injection; search snippet scoring + Jina Top-3 + LLM synthesis. 
+ac2f4788f13c43a8e2eee6e7d5b08c725bed0f59	py_like_txt	text/plain	""" 多源网页搜索工具：并行调用 Serper（与 search_agent.serper_search 同协议），无 LLM 总结。  
+ac929f452328d8b7a7dcaaa6acc8314a9d04b2db	py_like_txt	text/plain	""" Deep-research Critic: FOCUS pass/fail (no prose summary) + search snippet scoring + Jina Top-3 + LLM synthesis.  
+ad325e41537b04f91b3abfa1fe17ce8c8b6cdd8a	py_like_txt	text/plain	""" FOCUS: Frame-Optimistic Confidence Upper-bound Selection  
+b38aaee12c4a010f8cc35d37ab99368fa041692e	py_like_txt	text/plain	You are the **Research** model in a video deep-research loop. Your job is to solve the user’s task using **video evidence** plus **web search**, in a disciplined multi-step way. 
+b4298592ca2df1058a07366e31e3dded09c9268c	py_like_txt	text/plain	""" Critic system prompt and staged user-prompt templates (deep research: FOCUS + web search + Jina). """ 
+b517b29f0c173d01b9914f319eee0487032e5572	py_like_txt	text/plain	""" Load `video_dr_agent/.env` from the repository root and apply name aliases.  
+b57e246e8908d004382397f40a25d09b51cbb665	py_like_txt	text/plain	""" Load `video_dr_agent/.env` from the repository root and apply name aliases.  
+b685285ede4ba853debac9475052a369d5f91372	py_like_txt	text/plain	""" Load `video_dr_agent/.env` from the repository root and apply name aliases.  
+b8be559d38716c3eb80c8a08fcdbb868e73e5b35	py_like_txt	text/plain	""" FOCUS 关键帧筛选工具：调用 rsagent/FOCUS/select_keyframe.py 中的逻辑。  
+bf1ff3870f0c23502fa01e95609f98d6ad76b350	py_like_txt	text/plain	""" Evidence-tier policy (rsagent-v3): constants referenced by critic and research prompts.  
+c0f3ce978482879a1656ede0a5ab69b6165cf669	py_like_txt	text/plain	""" FOCUS Data Processing and I/O Module  
+c51215db4ff7f0e379b3044c8cd1fc1ed8cbec05	py_like_txt	text/plain	""" 多源网页搜索工具：并行调用 Serper（与 search_agent.serper_search 同协议），无 LLM 总结。  
+cde7dcb760aabb3668686331d882caff93cc0cdd	py_like_txt	text/plain	""" Deep-research Critic: FOCUS technical check + **Top-3 frame ranking** (metadata) for injection; search snippet scoring + Jina Top-3 + LLM synthesis. 
+d08321adbcb8d6d7db4ad565b73de15f4cee84b2	py_like_txt	text/plain	You are the **Research** model in a video deep-research loop. Your job is to solve the user’s task using **video evidence** plus **web search**, in a disciplined multi-step way. 
+d1f0cb0dc87c90ebaa3cba09edc5b33a2644a6f0	py_like_txt	text/plain	# Local secrets (video_dr_agent pack-in config) video_dr_agent/.env  
+d30a0c5d9214ccd46ded3a92719059a7e305290c	py	text/x-script.python	#!/usr/bin/env python3 """ Offline smoke: core ``run_loop`` + stub tools/critic + trace JSON (no vLLM). 
+e023b92238473869a7ef349bbafbf9e0e09670fe	py	text/x-script.python	#!/usr/bin/env python3 """ CLI entry for video_dr_agent (**rsagent-v3**). 
+e0584d8e1c50e7f90a954f094f5f6d5f9b16cc87	py_like_txt	text/plain	"""Critic-side history: system + critic assistants only (no persistent tool-output user turns)."""  from __future__ import annotations 
+e198d0ac4e4398e46da2b1458e9abaee8648472c	py_like_txt	text/plain	""" Default research (Qwen3-VL) system prompt resolution — aligns with Video DeepResearch plan: system + first multimodal user; tool protocol lives in the system prompt file. 
+e7dee6557cea283726b32685f0bd71fe1fbaf6f3	py_like_txt	text/plain	"""Video DeepResearch agent framework (vLLM Qwen3-VL research + OpenAI-compatible critic)."""  from video_dr_agent.critic_context import CriticContext 
+eb24c6bb5266f0a7267673959ea01a1899c3822e	py_like_txt	text/plain	""" Main research loop (Video DeepResearch plan).  
+ee1615e97d67c0587dc863ba578645c8d5d7597d	py_like_txt	text/plain	# Additional dependencies for video_dr_agent (keep existing conda packages stable). # #   conda activate qwen3-30B 
+f59c6f67b1d5fade0a304d1260ef5b7da893a4b2	py_like_txt	text/plain	""" Main research loop (Video DeepResearch plan).  
+f641f6f18b3d1b61285d5d79a16879d98fea6c1b	py_like_txt	text/plain	"""Critic via OpenAI-compatible chat.completions (same shape as rsagent/test_prompt.py)."""  from __future__ import annotations 
+f93903c7a650c0c2c4961e031734dd599fb918c6	py_like_txt	text/plain	""" FOCUS 关键帧筛选工具：调用 rsagent/FOCUS/select_keyframe.py 中的逻辑。  
+fda19036841a5c262f2b07952163cfb0ef8469ba	py_like_txt	text/plain	""" vLLM OpenAI-compatible chat for Qwen3-VL (see chat_qwen3vl_video.py on Vision-DeepResearch). """ 
