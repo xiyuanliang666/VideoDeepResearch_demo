@@ -2,7 +2,31 @@
 __pycache__/
 *.pyc
 outputs/
-data/clips/
-data/dense_frames/
-data/transcripts/
-data/audio/
+
+# Ignore everything under data/, but keep benchmark datasets
+data/*
+!data/benchmark/
+!data/benchmark/**
+!data/benchmarks/
+!data/benchmarks/**
+
+# rsagent data artifacts
+rsagent/test_data_frame/
+rsagent/video_dr_agent/out_put_frame/
+rsagent/FOCUS/datasets/
+rsagent/FOCUS/selected_frames/
+rsagent/FOCUS/visual_compare/
+
+# rsagent-v2 data artifacts
+rsagent-v2/test_data_frame/
+rsagent-v2/video_dr_agent/out_put_frame/
+rsagent-v2/FOCUS/datasets/
+rsagent-v2/FOCUS/selected_frames/
+rsagent-v2/FOCUS/visual_compare/
+
+# rsagent-v3 data artifacts
+rsagent-v3/test_data_frame/
+rsagent-v3/video_dr_agent/out_put_frame/
+rsagent-v3/FOCUS/datasets/
+rsagent-v3/FOCUS/selected_frames/
+rsagent-v3/FOCUS/visual_compare/
