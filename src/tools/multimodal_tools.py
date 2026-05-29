@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .env_tools import normalize_openai_base_url
+from .env_tools import resolve_openai_config
 from .model_router import get_model
 from .prompt_router import load_prompt_pair
 
@@ -29,6 +29,17 @@ def _set_multimodal_error(message: str) -> None:
 
 def _looks_like_image(path: Path) -> bool:
     return path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+
+
+def _looks_like_audio(path: Path) -> bool:
+    return path.suffix.lower() in {".wav", ".mp3", ".m4a", ".aac", ".flac", ".ogg"}
+
+
+def _audio_format(path: Path) -> str:
+    suffix = path.suffix.lower().lstrip(".")
+    if suffix in {"mp3", "wav"}:
+        return suffix
+    return suffix or "wav"
 
 
 def _file_to_data_url(path: Path) -> str:
@@ -66,16 +77,17 @@ def analyze_observation_multimodal(
     *,
     question: str,
     media_paths: list[str],
-    benchmark_name: str = "",
+    audio_paths: list[str] | None = None,
+    prompt_group: str = "",
     model_profile: dict | None = None,
     max_tokens: int = 500,
 ) -> dict[str, Any] | None:
     """Analyze media and return observation hints through the unified gateway."""
     _set_multimodal_error("")
-    api_key = os.getenv("LLM_API_KEY", "").strip()
-    base_url = normalize_openai_base_url(os.getenv("LLM_BASE_URL", ""))
-    if not api_key or not base_url:
-        _set_multimodal_error("missing LLM_API_KEY or LLM_BASE_URL")
+    role = "audio_vision" if audio_paths else "vision"
+    config = resolve_openai_config(role)
+    if not config.available:
+        _set_multimodal_error(config.missing_message)
         return None
 
     try:
@@ -86,7 +98,7 @@ def analyze_observation_multimodal(
 
     system_prompt, user_template = load_prompt_pair(
         prompt_root=PROMPT_ROOT,
-        benchmark_name=benchmark_name,
+        prompt_group=prompt_group,
         fallback_system="You are a careful multimodal analyst. Return JSON only.",
         fallback_user=(
             "Question:\n{question}\n\nReturn JSON with "
@@ -96,6 +108,7 @@ def analyze_observation_multimodal(
     user_text = user_template.replace("{question}", question)
 
     content_parts: list[dict[str, Any]] = [{"type": "text", "text": user_text}]
+    image_count = 0
     for item in media_paths:
         media_path = Path(item)
         if not media_path.exists() or not media_path.is_file() or not _looks_like_image(media_path):
@@ -105,14 +118,40 @@ def analyze_observation_multimodal(
         except OSError:
             continue
         content_parts.append({"type": "image_url", "image_url": {"url": data_url}})
+        image_count += 1
 
-    if len(content_parts) <= 1:
-        _set_multimodal_error("no valid image media_paths were found")
+    audio_count = 0
+    enable_audio = os.getenv("ENABLE_AUDIO_IN_MULTIMODAL", "true").strip().lower() in {"1", "true", "yes", "on"}
+    if enable_audio:
+        max_audio_files = int(os.getenv("MAX_AUDIO_FILES_PER_MULTIMODAL_CALL", "1") or 1)
+        for item in (audio_paths or [])[:max_audio_files]:
+            audio_path = Path(item)
+            if not audio_path.exists() or not audio_path.is_file() or not _looks_like_audio(audio_path):
+                continue
+            try:
+                audio_data = base64.b64encode(audio_path.read_bytes()).decode("utf-8")
+            except OSError:
+                continue
+            content_parts.append(
+                {
+                    "type": "input_audio",
+                    "input_audio": {"data": audio_data, "format": _audio_format(audio_path)},
+                }
+            )
+            audio_count += 1
+
+    if image_count <= 0 and audio_count <= 0:
+        _set_multimodal_error("no valid image or audio media_paths were found")
         return None
 
     timeout_seconds = float(os.getenv("TIMEOUT_SECONDS", "30") or 30)
-    model_name = get_model("vision", model_profile)
-    client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout_seconds)
+    model_role = "audio_vision" if audio_count else "vision"
+    config = resolve_openai_config(model_role)
+    if not config.available:
+        _set_multimodal_error(config.missing_message)
+        return None
+    model_name = get_model(model_role, model_profile)
+    client = OpenAI(api_key=config.api_key, base_url=config.base_url, timeout=timeout_seconds)
 
     try:
         response = client.chat.completions.create(
@@ -125,8 +164,29 @@ def analyze_observation_multimodal(
             max_tokens=max_tokens,
         )
     except Exception as exc:  # noqa: BLE001
-        _set_multimodal_error(f"chat.completions failed: {type(exc).__name__}: {exc}")
-        return None
+        if audio_count > 0 and image_count > 0:
+            audio_error = f"audio multimodal failed: {type(exc).__name__}: {exc}"
+            image_only_parts = [part for part in content_parts if part.get("type") != "input_audio"]
+            try:
+                response = client.chat.completions.create(
+                    model=get_model("vision", model_profile),
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": image_only_parts},
+                    ],
+                    temperature=0.0,
+                    max_tokens=max_tokens,
+                )
+                _set_multimodal_error(audio_error + "; retried image-only")
+            except Exception as retry_exc:  # noqa: BLE001
+                _set_multimodal_error(
+                    f"chat.completions failed: {type(exc).__name__}: {exc}; "
+                    f"image-only retry failed: {type(retry_exc).__name__}: {retry_exc}"
+                )
+                return None
+        else:
+            _set_multimodal_error(f"chat.completions failed: {type(exc).__name__}: {exc}")
+            return None
 
     content = ""
     if getattr(response, "choices", None):

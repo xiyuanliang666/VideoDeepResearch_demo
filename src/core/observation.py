@@ -3,9 +3,49 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from src.schemas import ObservationUnit
 from src.tools.multimodal_tools import analyze_observation_multimodal, get_last_multimodal_error
+
+
+def build_event_observations(
+    observations: list[ObservationUnit],
+    question: str,
+    *,
+    prompt_group: str = "",
+    task_profile: dict | None = None,
+    model_profile: dict | None = None,
+) -> list[ObservationUnit]:
+    """Populate observations with event-oriented clues using event_observer (vdr_v1 path).
+
+    Covers all scene segments without the max_multimodal_observation_calls cap.
+    """
+    from src.tools.event_observer import observe_scene_segment
+
+    task_profile = task_profile or {}
+    model_profile = model_profile or {}
+    max_frames = int(task_profile.get("max_images_per_multimodal_call", 4))
+
+    for observation in observations:
+        result = observe_scene_segment(
+            question=question,
+            frame_paths=observation.frame_paths,
+            start_sec=observation.timestamp_start or 0.0,
+            end_sec=observation.timestamp_end or 0.0,
+            model_profile=model_profile,
+            max_frames=max_frames,
+        )
+        if result.get("error"):
+            observation.uncertainty_notes.append(f"event_observer_error:{result['error']}")
+            continue
+        observation.scene_clues = [result["event_description"]] if result.get("event_description") else []
+        observation.candidate_entities = result.get("entities") or []
+        observation.candidate_actions = result.get("actions") or []
+        observation.confidence = result.get("confidence") or 0.3
+        observation.metadata["temporal_markers"] = result.get("temporal_markers") or []
+        observation.uncertainty_notes.append("event_observer_enhanced")
+    return observations
 
 
 def _sentence_chunks(text: str) -> list[str]:
@@ -46,7 +86,7 @@ def build_low_risk_observations(
     observations: list[ObservationUnit],
     question: str,
     *,
-    benchmark_name: str = "",
+    prompt_group: str = "",
     task_profile: dict | None = None,
     model_profile: dict | None = None,
 ) -> list[ObservationUnit]:
@@ -79,7 +119,8 @@ def build_low_risk_observations(
     if not bool(task_profile.get("enable_online_multimodal", False)):
         return observations
 
-    max_calls = int(task_profile.get("max_multimodal_observation_calls", 2))
+    # vdr_v1: no cap on multimodal calls — cover all segments
+    max_calls = int(task_profile.get("max_multimodal_observation_calls", 0)) or len(observations)
     max_images = int(task_profile.get("max_images_per_multimodal_call", 3))
 
     used_calls = 0
@@ -89,10 +130,12 @@ def build_low_risk_observations(
         media_candidates = observation.frame_paths[:max_images]
         if not media_candidates and observation.source_type == "image" and observation.source_path:
             media_candidates = [observation.source_path]
+        audio_candidates = [observation.audio_path] if task_profile.get("enable_audio_in_multimodal", True) and observation.audio_path else []
         hints = analyze_observation_multimodal(
             question=question,
             media_paths=media_candidates,
-            benchmark_name=benchmark_name,
+            audio_paths=audio_candidates,
+            prompt_group=prompt_group,
             model_profile=model_profile,
             max_tokens=500,
         )

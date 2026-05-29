@@ -4,7 +4,6 @@ input_type: image_set
 output_mode: report
 task_profile: configs/task_profiles/mmdeepresearch_report_v0.yaml
 model_profile: configs/model_profiles/default.yaml
-demo_input_file: data/benchmarks/mmdeepresearch_bench_demo.jsonl
 input_file: data/benchmarks/real/mmdeepresearch_bench.jsonl
 required_fields:
   - media_paths

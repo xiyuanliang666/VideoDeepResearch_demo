@@ -11,15 +11,15 @@ def build_final_answer(
     question: str,
     evidence_store,
     *,
-    benchmark_name: str = "",
+    prompt_group: str = "",
     model_profile: dict | None = None,
 ):
     online = run_online_reasoning(
         question=question,
         evidence_store=evidence_store.to_dict() if hasattr(evidence_store, "to_dict") else dict(evidence_store),
-        benchmark_name=benchmark_name,
+        prompt_group=prompt_group,
         model_profile=model_profile,
-        max_tokens=800,
+        max_tokens=2500,
     )
     reasoning_error = get_last_reasoning_error()
     reasoning_trace_refs = [f"online_reasoning_error:{reasoning_error}"] if reasoning_error else []
@@ -51,8 +51,16 @@ def build_final_answer(
     bindings = evidence_store.bindings or []
     evidences = {item["evidence_id"]: item for item in evidence_store.evidences}
 
-    supporting_bindings = [binding for binding in bindings if binding.get("relation") == "supports"]
-    selected_bindings = supporting_bindings or bindings[:3]
+    supporting_bindings = [
+        binding for binding in bindings
+        if binding.get("relation") == "supports"
+        and not _is_fallback_evidence(evidences.get(binding.get("evidence_id"), {}))
+    ]
+    nonfallback_bindings = [
+        binding for binding in bindings
+        if not _is_fallback_evidence(evidences.get(binding.get("evidence_id"), {}))
+    ]
+    selected_bindings = supporting_bindings or nonfallback_bindings[:3]
 
     video_support: list[str] = []
     web_support: list[str] = []
@@ -113,6 +121,12 @@ def build_final_answer(
     )
 
 
+def _is_fallback_evidence(evidence: dict) -> bool:
+    metadata = evidence.get("metadata") if isinstance(evidence.get("metadata"), dict) else {}
+    source_ref = str(evidence.get("source_ref") or evidence.get("source_url") or "")
+    return bool(metadata.get("is_fallback")) or source_ref.startswith("fallback://")
+
+
 def build_judge_result(
     *,
     task_input: dict,
@@ -137,10 +151,11 @@ def build_judge_result(
     )
     if not bool(task_profile.get("enable_llm_judge", False)):
         return judge_input, None
+    prompt_group = "video" if str(task_input.get("input_type", "") or "").strip().lower() == "video" else "image"
     judge_result = run_judge(
         judge_input=judge_input,
         model_name=model_profile.get("judge_model", "heuristic-judge"),
         prompt_version=task_profile.get("judge_prompt_version", "v0"),
-        benchmark_name=str(task_input.get("benchmark_name", "") or ""),
+        prompt_group=prompt_group,
     )
     return judge_input, judge_result

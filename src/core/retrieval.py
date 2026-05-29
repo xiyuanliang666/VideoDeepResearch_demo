@@ -32,7 +32,7 @@ def _fallback_candidates(
     fallback_reason = reason.strip()[:240] or "live web search unavailable"
     return [
         RetrievalCandidate(
-            candidate_id=f"web_fallback_{index:04d}",
+            candidate_id=f"{query_unit.query_id}_fallback_{index:04d}",
             candidate_type="web_result",
             source_query_id=query_unit.query_id,
             source_ref=f"fallback://web/{index}",
@@ -45,6 +45,28 @@ def _fallback_candidates(
                     "placeholder candidate preserved for pipeline debugging."
                 ),
                 "url": "",
+                "query": query,
+                "support_target": getattr(query_unit, "support_target", "final_answer"),
+                "linked_candidate_id": getattr(query_unit, "linked_candidate_id", ""),
+                "target_type": getattr(query_unit, "target_type", ""),
+                "target_id": getattr(query_unit, "target_id", ""),
+                "slot_id": getattr(query_unit, "slot_id", ""),
+                "state_id": getattr(query_unit, "state_id", getattr(query_unit, "slot_id", "")),
+                "slot_name": getattr(query_unit, "slot_name", ""),
+                "expected_answer_type": getattr(query_unit, "expected_answer_type", ""),
+                "current_uncertainty": getattr(query_unit, "current_uncertainty", []) or [],
+                "unresolved_constraints": getattr(query_unit, "unresolved_constraints", getattr(query_unit, "hard_constraints", {})) or {},
+                "hard_constraints": getattr(query_unit, "unresolved_constraints", getattr(query_unit, "hard_constraints", {})) or {},
+                "candidate_conflicts": getattr(query_unit, "candidate_conflicts", []) or [],
+                "missing_evidence": getattr(query_unit, "missing_evidence", []) or [],
+                "soft_clues": getattr(query_unit, "soft_clues", []) or [],
+                "consistency_check": getattr(query_unit, "consistency_check", getattr(query_unit, "verification_rule", "")),
+                "verification_rule": getattr(query_unit, "consistency_check", getattr(query_unit, "verification_rule", "")),
+                "retrieval_rationale": getattr(query_unit, "retrieval_rationale", ""),
+                "depends_on": getattr(query_unit, "depends_on", []) or [],
+                "planner_phase": getattr(query_unit, "planner_phase", ""),
+                "observation_label": "empty_result",
+                "observation_reason": fallback_reason,
                 "fallback_reason": fallback_reason,
             },
             retriever_name="fallback_web_retriever",
@@ -55,6 +77,23 @@ def _fallback_candidates(
         for index in range(max(topk, 1))
     ]
 
+
+
+def _search_serper(query: str, api_key: str, topk: int) -> list[dict]:
+    from src.videodeepresearch.tools.web_search import serper_search
+
+    rows = serper_search(query, api_key=api_key, num=topk)
+    return [
+        {
+            "url": str(item.get("url") or ""),
+            "title": str(item.get("title") or ""),
+            "snippet": str(item.get("snippet") or ""),
+            "content": str(item.get("snippet") or ""),
+            "score": 1.0,
+            "raw_result": item,
+        }
+        for item in rows
+    ]
 
 def _search_tavily(query: str, api_key: str, topk: int) -> list[dict]:
     try:
@@ -199,23 +238,28 @@ def run_web_retrieval(
         query_source="anchor_search_query",
     )
 
-    api_key = os.getenv("TAVILY_API_KEY", "").strip()
-    if not api_key:
+    serper_key = os.getenv("SERPER_API_KEY", "").strip()
+    tavily_key = os.getenv("TAVILY_API_KEY", "").strip()
+    provider = "serper" if serper_key else "tavily" if tavily_key else ""
+    if not provider:
         return query_unit, _fallback_candidates(
             query_unit,
             query_text,
             topk,
-            reason="missing TAVILY_API_KEY",
+            reason="missing SERPER_API_KEY and TAVILY_API_KEY",
         )
 
     try:
-        raw_results = _search_tavily(query_text, api_key=api_key, topk=topk)
+        if provider == "serper":
+            raw_results = _search_serper(query_text, api_key=serper_key, topk=topk)
+        else:
+            raw_results = _search_tavily(query_text, api_key=tavily_key, topk=topk)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, RuntimeError, Exception) as exc:
         return query_unit, _fallback_candidates(
             query_unit,
             query_text,
             topk,
-            reason=f"tavily request failed: {type(exc).__name__}: {exc}",
+            reason=f"{provider} request failed: {type(exc).__name__}: {exc}",
         )
 
     query_tokens = set(_tokenize(query_text))
@@ -240,7 +284,7 @@ def run_web_retrieval(
                     "url": url,
                     "raw_result": item,
                 },
-                retriever_name="tavily_web_retriever",
+                retriever_name=f"{provider}_web_retriever",
                 normalized_score=normalized_score,
                 keep_label="keep" if overlap > 0 else "weak_keep",
                 keep_reason=(

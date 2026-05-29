@@ -1,27 +1,24 @@
-"""Prompt routing helpers by benchmark family."""
+"""Prompt routing by media input type (video / image)."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 
-VIDEO_BENCHMARKS = {
-    "videodr",
-    "vdr_bench",
-    "vdrbench",
-}
-
-IMAGE_BENCHMARKS = {
-    "mmsearch_plus",
-    "mmsearchplus",
-    "browsecomp_vl",
-    "browsecompvl",
-    "mmdeepresearch_bench",
-    "mmdeepresearchbench",
-}
+def input_type_to_prompt_group(input_type: str | None) -> str:
+    """Map sample.input_type to a prompt group: 'video' or 'image'."""
+    value = (input_type or "").strip().lower()
+    if value in {"video"}:
+        return "video"
+    if value in {"image", "image_set"}:
+        return "image"
+    if "video" in value:
+        return "video"
+    return "image"
 
 
 def normalize_benchmark_name(benchmark_name: str | None) -> str:
+    """Normalize a benchmark name for display/logging only (not for routing)."""
     value = (benchmark_name or "").strip().lower()
     if not value:
         return ""
@@ -38,13 +35,12 @@ def normalize_benchmark_name(benchmark_name: str | None) -> str:
     return "".join(out).strip("_")
 
 
-def resolve_prompt_group(benchmark_name: str | None) -> str:
-    normalized = normalize_benchmark_name(benchmark_name)
-    if normalized in VIDEO_BENCHMARKS:
-        return "video"
-    if normalized in IMAGE_BENCHMARKS:
-        return "image"
-    if "video" in normalized or normalized.startswith("vdr"):
+def resolve_prompt_group(prompt_group: str | None) -> str:
+    """Resolve prompt_group to 'video' or 'image' with fallback."""
+    value = (prompt_group or "").strip().lower()
+    if value in {"video", "image"}:
+        return value
+    if "video" in value:
         return "video"
     return "image"
 
@@ -58,18 +54,17 @@ def load_prompt_text(path: Path, fallback: str) -> str:
 def load_prompt_pair(
     *,
     prompt_root: Path,
-    benchmark_name: str | None,
+    prompt_group: str | None,
     fallback_system: str,
     fallback_user: str,
 ) -> tuple[str, str]:
-    normalized = normalize_benchmark_name(benchmark_name)
-    prompt_group = resolve_prompt_group(benchmark_name)
+    """Load (system, user) prompt pair from prompt_root/{prompt_group}/, falling back to prompt_root/."""
+    group = resolve_prompt_group(prompt_group)
 
-    candidates = []
-    if normalized:
-        candidates.append(prompt_root / "benchmarks" / normalized)
-    candidates.append(prompt_root / prompt_group)
-    candidates.append(prompt_root)
+    candidates = [
+        prompt_root / group,
+        prompt_root,
+    ]
 
     system_text = ""
     user_text = ""

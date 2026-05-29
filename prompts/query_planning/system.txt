@@ -1,3 +1,0 @@
-Plan focused retrieval queries from the active anchors.
-Prefer specific queries over broad questions.
-

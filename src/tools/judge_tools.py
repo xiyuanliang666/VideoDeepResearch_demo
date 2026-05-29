@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .env_tools import normalize_openai_base_url
+from .env_tools import resolve_openai_config
 from .model_router import get_model
 from .prompt_router import load_prompt_pair
 
@@ -48,10 +48,10 @@ def _extract_json_dict(text: str) -> dict[str, Any] | None:
     return None
 
 
-def _build_prompts(judge_input: dict[str, Any], benchmark_name: str = "") -> tuple[str, str]:
+def _build_prompts(judge_input: dict[str, Any], prompt_group: str = "") -> tuple[str, str]:
     system_prompt, user_template = load_prompt_pair(
         prompt_root=PROMPT_ROOT,
-        benchmark_name=benchmark_name,
+        prompt_group=prompt_group,
         fallback_system="Judge the model output and return JSON only.",
         fallback_user=(
             "Return JSON with overall_score, verdict, explanation, "
@@ -67,7 +67,7 @@ def run_online_judge(
     *,
     judge_input: dict[str, Any],
     model_name: str,
-    benchmark_name: str = "",
+    prompt_group: str = "",
     max_tokens: int = 800,
 ) -> dict[str, Any] | None:
     _set_judge_error("")
@@ -75,10 +75,9 @@ def run_online_judge(
         _set_judge_error("ENABLE_ONLINE_JUDGE is disabled")
         return None
 
-    api_key = os.getenv("LLM_API_KEY", "").strip()
-    base_url = normalize_openai_base_url(os.getenv("LLM_BASE_URL", ""))
-    if not api_key or not base_url:
-        _set_judge_error("missing LLM_API_KEY or LLM_BASE_URL")
+    config = resolve_openai_config("judge")
+    if not config.available:
+        _set_judge_error(config.missing_message)
         return None
 
     try:
@@ -89,8 +88,8 @@ def run_online_judge(
 
     timeout_seconds = float(os.getenv("TIMEOUT_SECONDS", "30") or 30)
     resolved_model = get_model("judge", {"judge_model": model_name})
-    system_prompt, user_prompt = _build_prompts(judge_input, benchmark_name=benchmark_name)
-    client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout_seconds)
+    system_prompt, user_prompt = _build_prompts(judge_input, prompt_group=prompt_group)
+    client = OpenAI(api_key=config.api_key, base_url=config.base_url, timeout=timeout_seconds)
     try:
         response = client.chat.completions.create(
             model=resolved_model,

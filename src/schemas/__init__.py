@@ -9,6 +9,7 @@ from .output import FinalAnswerBundle, ReasoningTrace, ToolCallRecord
 from .prediction import Prediction
 from .retrieval import QueryUnit, RetrievalCandidate
 from .sample import Sample
+from .state import TemporalState
 
 __all__ = [
     "Anchor",
@@ -26,6 +27,7 @@ __all__ = [
     "ReasoningTrace",
     "RetrievalCandidate",
     "Sample",
+    "TemporalState",
     "ToolCallRecord",
     "V0BaseModel",
     "utc_now_iso",

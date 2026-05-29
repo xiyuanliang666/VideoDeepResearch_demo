@@ -1,1 +1,0 @@
-{"sample_id":"mmsearch_plus_demo_0001","image_path":"data/raw_images/demo_search.jpg","question":"Use the image clue to search for the relevant fact and answer the question.","reference_answer":"Demo placeholder answer.","metadata":{"split":"demo","benchmark":"MMSearch-Plus"}}

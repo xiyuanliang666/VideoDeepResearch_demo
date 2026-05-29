@@ -12,13 +12,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.adapters import get_adapter, list_adapters
-from src.core.agentic_pipeline import run_agentic_pipeline
 from src.evaluation.aggregate import build_comparison_row, summarize_results, write_comparison_csv
-from src.core.pipeline import run_pipeline
 from src.tools.cache_tools import load_json, load_jsonl, save_json, save_jsonl
 from src.tools.config_tools import load_config
 from src.tools.env_tools import load_env_file
 from src.tools.io_tools import build_run_dir, build_run_id, write_trace
+from videodeepresearch import run as run_videodeepresearch
 
 
 def parse_args():
@@ -79,6 +78,7 @@ def build_result_row(
 ) -> dict:
     final_answer = result.get("final_answer") or {}
     judge_result = result.get("judge_result") or {}
+    diagnostics = result.get("diagnostics") or {}
     return {
         "run_id": run_id,
         "benchmark_name": benchmark_name,
@@ -89,13 +89,13 @@ def build_result_row(
         "question": sample.get("question") or sample.get("query") or sample.get("prompt") or "",
         "reference_answer": sample.get("reference_answer", sample.get("answer", "")),
         "status": result.get("status", ""),
-        "final_answer": final_answer.get("final_answer", ""),
+        "final_answer": final_answer.get("answer_text") or final_answer.get("final_answer", ""),
         "answer_confidence": final_answer.get("confidence"),
-        "judge_score": judge_result.get("overall_score"),
-        "judge_verdict": judge_result.get("verdict", ""),
-        "anchor_count": len(result.get("anchors", [])),
-        "evidence_count": len(result.get("evidences", [])),
-        "binding_count": len(result.get("bindings", [])),
+        "judge_score": (judge_result or {}).get("overall_score") if isinstance(judge_result, dict) else None,
+        "judge_verdict": (judge_result or {}).get("verdict", "") if isinstance(judge_result, dict) else "",
+        "anchor_count": diagnostics.get("anchor_count", 0),
+        "evidence_count": diagnostics.get("web_evidence_count", 0),
+        "binding_count": diagnostics.get("binding_count", 0),
         "supporting_video_evidence": final_answer.get("supporting_video_evidence", []),
         "supporting_web_evidence": final_answer.get("supporting_web_evidence", []),
         "error_message": "",
@@ -129,7 +129,6 @@ def _run_once(
     run_id: str,
 ) -> dict:
     execution_mode = _resolve_execution_mode(mode, task_profile)
-    pipeline_fn = run_agentic_pipeline if execution_mode == "agentic" else run_pipeline
     trace_root = Path(build_run_dir("outputs/traces", run_id))
     eval_dir = Path(build_run_dir("outputs/eval", run_id))
     answers_path = Path("outputs/answers") / f"{run_id}.jsonl"
@@ -145,11 +144,14 @@ def _run_once(
         try:
             adapted_sample = adapter(sample, index)
             sample_id = adapted_sample.sample_id
-            result = pipeline_fn(
+            result = run_videodeepresearch(
                 sample=adapted_sample,
                 task_profile=task_profile,
                 model_profile=model_profile,
+                mode=execution_mode,
+                include_raw_trace=True,
             )
+            execution_mode = str(result.get("mode") or execution_mode)
             sample_trace_dir = trace_root / sample_id
             sample_trace_dir.mkdir(parents=True, exist_ok=True)
             write_trace(sample_trace_dir, "trace", result)
@@ -236,7 +238,7 @@ def main():
 
     task_profile_path = benchmark_config.get("task_profile", args.task_profile)
     model_profile_path = benchmark_config.get("model_profile", args.model_profile)
-    input_file = args.input_file or benchmark_config.get("input_file") or benchmark_config.get("demo_input_file") or ""
+    input_file = args.input_file or benchmark_config.get("input_file") or ""
     if not input_file:
         raise ValueError("An input file is required. Pass --input-file or provide it in --benchmark-config.")
 

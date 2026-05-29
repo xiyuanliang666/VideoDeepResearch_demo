@@ -4,7 +4,6 @@ input_type: image
 output_mode: short_answer
 task_profile: configs/task_profiles/vdr_bench_v0.yaml
 model_profile: configs/model_profiles/default.yaml
-demo_input_file: data/benchmarks/mmsearch_plus_demo.jsonl
 input_file: data/benchmarks/real/mmsearch_plus.jsonl
 required_fields:
   - image_path

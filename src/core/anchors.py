@@ -51,9 +51,14 @@ def build_anchors(
         summary = transcript_text or " ".join(observation.scene_clues).strip() or (
             f"Observation from {observation.timestamp_start} to {observation.timestamp_end}."
         )
-        search_queries = [question]
-        if transcript_text:
-            search_queries.extend(_sentence_chunks(transcript_text)[:2])
+        # Use state-derived search queries when available (vdr_v1 path)
+        state_queries = list(observation.metadata.get("search_queries") or [])
+        if state_queries:
+            search_queries = state_queries[:3]
+        else:
+            search_queries = [question]
+            if transcript_text:
+                search_queries.extend(_sentence_chunks(transcript_text)[:2])
 
         anchors.append(
             Anchor(

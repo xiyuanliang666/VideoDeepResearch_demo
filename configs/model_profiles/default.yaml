@@ -1,8 +1,21 @@
 # Optional static fallback profile.
 # Runtime environment variables in .env are primary defaults.
-reasoning_model: ""
-vision_model: ""
-judge_model: ""
+reasoning_model: gpt-5
+vision_model: qwen3-vl-flash
+audio_vision_model: qwen3-vl-flash
+judge_model: claude-haiku-4-5-20251001
 text_model: bge_m3
-search_api: tavily
+search_api: serper
 asr_backend: whisper
+
+# Optional per-stage overrides. Runtime .env variables with matching uppercase
+# names take precedence when set.
+event_observer_model:
+anchor_extractor_model:
+state_constructor_model:
+query_planner_model:
+hypothesis_generator_model:
+evidence_binder_model:
+candidate_evaluator_model:
+coverage_checker_model:
+frame_reranker_model:

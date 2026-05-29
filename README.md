@@ -1,6 +1,6 @@
-# VideoGroundedResearch v0
+# VideoDeepResearch
 
-This repository is a `training-free` v0 scaffold for a video-grounded deep research system.
+This repository now exposes one baseline framework: `videodeepresearch`. The framework supports both fixed workflow execution and agentic tool-loop execution while returning one normalized output structure.
 
 Current scope:
 
@@ -18,33 +18,35 @@ Current scope:
 
 Related docs:
 
-- `proposal.md`
-- `framework.md`
-- `training-free_plan.md`
+- `docs/framework_unification.md`: current consolidation notes.
 
 ## Current Architecture
 
-The project now follows a compact `method-first` layout:
+The active tree is organized around one public framework surface:
 
+- `videodeepresearch/`
+  - top-level import shim for `from videodeepresearch import run`.
+- `src/videodeepresearch/`
+  - unified runner, normalized output conversion, agentic runtime, and migrated tools.
 - `src/core/`
-  - the main method core
-  - `preprocessing -> observation -> anchors -> retrieval -> grounding -> reasoning`
-- `src/adapters/`
-  - thin benchmark adapters for:
-    - `MMSearch-Plus`
-    - `VDR-Bench`
-    - `VideoDR`
-    - `BrowseComp-VL`
-    - `MMDeepResearch-Bench`
-- `src/schemas/`
-  - shared intermediate objects such as `Sample`, `Observation`, `Anchor`, and `Prediction`
-- `src/tools/`
-  - reusable low-level utilities
+  - current workflow pipeline internals, kept for compatibility while modules are migrated behind `videodeepresearch.run`.
+- `src/adapters/`, `src/schemas/`, `src/evaluation/`
+  - benchmark adapters, shared data objects, and evaluation helpers.
+- `baseline_entrypoints/`
+  - stable CLI entrypoints for external benchmark projects.
 
 Execution mode:
 
-- `workflow` (default): fixed stage pipeline
-- `agentic`: LLM planner decides each web-search step (search/finalize loop)
+- `workflow` (default): fixed stage pipeline.
+- `agentic`: unified agentic runner with tool-call execution and normalized output.
+
+Python API:
+
+```python
+from videodeepresearch import run
+
+result = run(sample=sample, task_profile=task_profile, model_profile=model_profile, mode="workflow")
+```
 
 ## Quick Start
 
@@ -83,7 +85,7 @@ Notes:
 
 - `ffmpeg` / `ffprobe` are recommended for real video slicing and frame extraction.
 - If `ffmpeg` is missing, the current v0 pipeline will fall back to a single-clip mode.
-- If `TAVILY_API_KEY` is missing, web retrieval will return structured fallback candidates so the pipeline can still be debugged.
+- If `TAVILY_API_KEY` / `SERPER_API_KEY` is missing, web retrieval will return structured fallback candidates so the pipeline can still be debugged.
 - If `LLM_API_KEY` or `LLM_BASE_URL` is missing, online inference automatically falls back to local heuristic logic.
 - Judge supports online mode via `ENABLE_ONLINE_JUDGE=true`. If online judge fails, it falls back to local heuristic judge.
 
@@ -158,7 +160,7 @@ Example command:
 
 ```bash
 python3 scripts/run_benchmark.py \
-  --input-file data/benchmarks/videodr_demo.jsonl \
+  --input-file /path/to/your/videodr.jsonl \
   --benchmark-name videodr \
   --adapter videodr \
   --mode framework \
@@ -211,7 +213,7 @@ max_agent_iterations: 3
 
 ## Benchmark Configs And Demo Inputs
 
-The repository now includes lightweight benchmark configs and demo input files for:
+The repository keeps lightweight benchmark configs for:
 
 - `configs/benchmarks/videodr.yaml`
 - `configs/benchmarks/vdr_bench.yaml`
@@ -219,17 +221,7 @@ The repository now includes lightweight benchmark configs and demo input files f
 - `configs/benchmarks/browsecomp_vl.yaml`
 - `configs/benchmarks/mmdeepresearch_bench.yaml`
 
-Matching demo inputs are stored under:
-
-- `data/benchmarks/`
-
-These files are not the full official datasets. They are runnable schema examples that let you:
-
-- validate each adapter
-- validate the benchmark runner
-- keep input formats consistent before downloading the full datasets
-
-If your datasets are already downloaded under `/mnt/sda/Datasets`, generate runnable benchmark jsonl files with:
+Demo jsonl files are intentionally not kept in the main tree. Pass `--input-file` explicitly, or generate runnable benchmark jsonl files from datasets downloaded under `/mnt/sda/Datasets`:
 
 ```bash
 python3 scripts/prepare_benchmark_inputs.py
@@ -374,12 +366,12 @@ Recommended questions to ask:
 
 ## Current Limitations
 
-This is still a v0 scaffold, so a few parts are intentionally simple:
+This is still an early baseline scaffold, so a few parts are intentionally simple:
 
 - local retrieval is heuristic, not embedding-based yet
 - anchor extraction is heuristic
 - evidence binding is heuristic
-- final reasoning is deterministic, not MLLM-based yet
-- judge is heuristic, not a real LLM judge yet
+- final reasoning currently keeps deterministic fallbacks when online inference is unavailable
+- judge has heuristic fallback behavior when online judge is disabled or unavailable
 
 The current goal is to make the full experiment loop analyzable before replacing these modules with stronger learned or MLLM-based versions.

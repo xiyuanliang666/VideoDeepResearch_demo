@@ -1,1 +1,0 @@
-{"sample_id":"videodr_demo_0001","video_path":"data/raw_videos/demo.mp4","question":"What is happening in the video, and what external evidence could help verify it?","reference_answer":"Demo placeholder answer.","metadata":{"split":"demo","benchmark":"VideoDR"}}

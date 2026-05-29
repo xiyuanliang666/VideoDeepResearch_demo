@@ -54,7 +54,7 @@ def _heuristic_judge(judge_input, model_name: str, prompt_version: str):
     )
 
 
-def run_judge(judge_input, model_name: str, prompt_version: str, benchmark_name: str = ""):
+def run_judge(judge_input, model_name: str, prompt_version: str, prompt_group: str = ""):
     """Run judge with online LLM first, then fallback to heuristic.
 
     Set ENABLE_ONLINE_JUDGE=true in .env to enable provider-routed online judge.
@@ -62,7 +62,7 @@ def run_judge(judge_input, model_name: str, prompt_version: str, benchmark_name:
     online_payload = run_online_judge(
         judge_input=judge_input.to_dict() if hasattr(judge_input, "to_dict") else dict(judge_input),
         model_name=model_name,
-        benchmark_name=benchmark_name,
+        prompt_group=prompt_group,
         max_tokens=800,
     )
     judge_error = get_last_judge_error()

@@ -10,13 +10,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.agentic_pipeline import run_agentic_pipeline
-from src.core.pipeline import run_pipeline
 from src.schemas import Sample
 from src.tools.cache_tools import save_json
 from src.tools.config_tools import load_config
 from src.tools.env_tools import load_env_file
 from src.tools.io_tools import build_run_dir, build_run_id, write_text, write_trace
+from videodeepresearch import run as run_videodeepresearch
 
 
 def parse_args():
@@ -61,9 +60,6 @@ def main():
     args = parse_args()
     task_profile = load_config(args.task_profile)
     model_profile = load_config(args.model_profile)
-    execution_mode = _resolve_execution_mode(args.mode, task_profile)
-    pipeline_fn = run_agentic_pipeline if execution_mode == "agentic" else run_pipeline
-
     run_id = args.run_id or build_run_id("single_case")
     run_dir = build_run_dir("outputs/traces", run_id)
 
@@ -77,11 +73,14 @@ def main():
         metadata={},
     )
 
-    result = pipeline_fn(
+    result = run_videodeepresearch(
         sample=sample,
         task_profile=task_profile,
         model_profile=model_profile,
+        mode=args.mode,
+        include_raw_trace=True,
     )
+    execution_mode = str(result.get("mode") or "")
 
     write_trace(run_dir, "trace", result)
     save_json(result, Path("outputs/answers") / f"{run_id}.json")
@@ -92,8 +91,9 @@ def main():
     print(f"answer_file=outputs/answers/{run_id}.json")
     print(f"execution_mode={execution_mode}")
     print(f"status={result['status']}")
-    print(f"clips={len(result['clips'])}")
-    print(f"observations={len(result['observations'])}")
+    diagnostics = result.get("diagnostics") or {}
+    print(f"clips={diagnostics.get('clip_count', 0)}")
+    print(f"observations={diagnostics.get('observation_count', 0)}")
 
 
 if __name__ == "__main__":

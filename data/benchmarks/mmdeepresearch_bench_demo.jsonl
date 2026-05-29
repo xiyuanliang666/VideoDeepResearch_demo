@@ -1,1 +1,0 @@
-{"sample_id":"mmdeepresearch_demo_0001","media_paths":["data/raw_images/report_1.jpg","data/raw_images/report_2.jpg"],"question":"Produce a grounded report outline based on the visual materials and web evidence.","reference_answer":"Demo placeholder answer.","metadata":{"split":"demo","benchmark":"MMDeepResearch-Bench","output_mode":"report"}}

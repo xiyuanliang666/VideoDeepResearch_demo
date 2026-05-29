@@ -1,1 +1,0 @@
-{"sample_id":"browsecomp_vl_demo_0001","media_paths":["data/raw_images/demo_1.jpg","data/raw_images/demo_2.jpg"],"question":"Use the visual evidence across the images to answer the browsing question.","reference_answer":"Demo placeholder answer.","metadata":{"split":"demo","benchmark":"BrowseComp-VL"}}

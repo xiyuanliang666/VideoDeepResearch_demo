@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
-from .env_tools import normalize_openai_base_url
+from .env_tools import resolve_openai_config
 from .model_router import get_model
 from .prompt_router import load_prompt_pair
 
@@ -52,19 +53,18 @@ def run_online_reasoning(
     *,
     question: str,
     evidence_store: dict[str, Any],
-    benchmark_name: str = "",
+    prompt_group: str = "",
     model_profile: dict | None = None,
-    max_tokens: int = 800,
+    max_tokens: int = 2500,
 ) -> dict[str, Any] | None:
     _set_reasoning_error("")
     if os.getenv("ENABLE_ONLINE_REASONING", "true").strip().lower() not in {"1", "true", "yes", "on"}:
         _set_reasoning_error("ENABLE_ONLINE_REASONING is disabled")
         return None
 
-    api_key = os.getenv("LLM_API_KEY", "").strip()
-    base_url = normalize_openai_base_url(os.getenv("LLM_BASE_URL", ""))
-    if not api_key or not base_url:
-        _set_reasoning_error("missing LLM_API_KEY or LLM_BASE_URL")
+    config = resolve_openai_config("reasoning")
+    if not config.available:
+        _set_reasoning_error(config.missing_message)
         return None
 
     try:
@@ -75,18 +75,14 @@ def run_online_reasoning(
 
     system_prompt, user_template = load_prompt_pair(
         prompt_root=PROMPT_ROOT,
-        benchmark_name=benchmark_name,
+        prompt_group=prompt_group,
         fallback_system="You are a careful reasoning assistant. Return JSON only.",
         fallback_user=(
             "Question:\n{question}\n\nEvidence:\n{evidence_summary_json}\n\nReturn JSON with "
             "final_answer/confidence/supporting_video_evidence/supporting_web_evidence."
         ),
     )
-    evidence_summary = {
-        "anchors": (evidence_store.get("anchors") or [])[:5],
-        "evidences": (evidence_store.get("evidences") or [])[:8],
-        "bindings": (evidence_store.get("bindings") or [])[:8],
-    }
+    evidence_summary = _build_reasoning_evidence_summary(question, evidence_store)
     user_prompt = (
         user_template.replace("{question}", question).replace(
             "{evidence_summary_json}",
@@ -96,7 +92,7 @@ def run_online_reasoning(
 
     timeout_seconds = float(os.getenv("TIMEOUT_SECONDS", "30") or 30)
     model_name = get_model("reasoning", model_profile)
-    client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout_seconds)
+    client = OpenAI(api_key=config.api_key, base_url=config.base_url, timeout=timeout_seconds)
     try:
         response = client.chat.completions.create(
             model=model_name,
@@ -119,3 +115,77 @@ def run_online_reasoning(
     if parsed is None:
         _set_reasoning_error("model response is not valid JSON object")
     return parsed
+
+
+def _build_reasoning_evidence_summary(question: str, evidence_store: dict[str, Any]) -> dict[str, Any]:
+    max_anchors = int(os.getenv("FINAL_REASONING_MAX_ANCHORS", "8") or 8)
+    max_evidences = int(os.getenv("FINAL_REASONING_MAX_EVIDENCES", "32") or 32)
+    max_bindings = int(os.getenv("FINAL_REASONING_MAX_BINDINGS", "32") or 32)
+    anchors = evidence_store.get("anchors") or []
+    evidences = evidence_store.get("evidences") or []
+    bindings = evidence_store.get("bindings") or []
+    selected_evidences = _select_relevant_items(
+        evidences,
+        question,
+        max_items=max_evidences,
+        text_fields=("content_summary", "raw_excerpt", "source_url", "source_ref"),
+    )
+    selected_ids = {
+        str(item.get("evidence_id") or "")
+        for item in selected_evidences
+        if isinstance(item, dict)
+    }
+    selected_bindings = [
+        item for item in bindings
+        if not selected_ids or str(item.get("evidence_id") or "") in selected_ids
+    ][:max_bindings]
+    selected_anchor_ids = {
+        str(item.get("anchor_id") or "")
+        for item in selected_bindings
+        if isinstance(item, dict)
+    }
+    selected_anchors = [
+        item for item in anchors
+        if not selected_anchor_ids or str(item.get("anchor_id") or "") in selected_anchor_ids
+    ][:max_anchors]
+    if not selected_anchors:
+        selected_anchors = anchors[:max_anchors]
+    return {
+        "anchors": selected_anchors,
+        "evidences": selected_evidences,
+        "bindings": selected_bindings,
+        "selection_policy": {
+            "max_anchors": max_anchors,
+            "max_evidences": max_evidences,
+            "max_bindings": max_bindings,
+            "question_aware": True,
+        },
+    }
+
+
+def _select_relevant_items(
+    items: list[Any],
+    question: str,
+    *,
+    max_items: int,
+    text_fields: tuple[str, ...],
+) -> list[Any]:
+    if len(items) <= max_items:
+        return items
+    question_tokens = _tokens(question)
+    scored: list[tuple[float, int, Any]] = []
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            scored.append((0.0, index, item))
+            continue
+        text = " ".join(str(item.get(field) or "") for field in text_fields)
+        item_tokens = _tokens(text)
+        overlap = len(question_tokens & item_tokens)
+        score = float(overlap)
+        scored.append((score, index, item))
+    selected = sorted(scored, key=lambda entry: (-entry[0], entry[1]))[:max_items]
+    return [item for _, _, item in sorted(selected, key=lambda entry: entry[1])]
+
+
+def _tokens(text: str) -> set[str]:
+    return {token for token in re.findall(r"[a-zA-Z0-9]+", text.lower()) if len(token) > 2}

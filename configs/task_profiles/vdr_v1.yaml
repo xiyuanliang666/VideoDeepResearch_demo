@@ -1,0 +1,59 @@
+task_name: videodr_v1
+mode: workflow
+ablation_mode: full_vdr
+input_mode: video
+output_mode: short_answer
+
+# Phase A: dense frame extraction
+dense_frame_fps: 1.0
+scene_change_threshold: 30.0
+min_scene_segments: 2
+scene_fallback_window_sec: 30.0
+enable_temporal_semantic_consolidation: true
+enable_semantic_clip_merge: true
+semantic_clip_model: MobileCLIP-S2
+semantic_clip_pretrained: datacompdr
+semantic_merge_similarity_threshold: 0.82
+semantic_merge_adjacent_window_sec: 3.0
+semantic_merge_max_duration_sec: 90.0
+max_semantic_segments: 24
+max_semantic_merge_frames_per_segment: 8
+max_artifact_frames_per_segment: 4
+enable_local_ocr: true
+enable_local_object_detection: true
+
+# Phase A: event observation (no cap — covers all segments)
+enable_online_multimodal: true
+enable_audio_in_multimodal: false
+max_multimodal_observation_calls: 0
+max_images_per_multimodal_call: 4
+
+# Phase A: state proposal + anchor extraction
+enable_state_proposal: true
+max_states: 6
+enable_anchor_extraction: true
+
+# Legacy clip settings (kept for fallback compatibility)
+clip_duration: 30
+frame_sampling_fps: 2
+max_frames_per_clip: 16
+enable_asr: false
+asr_backend: none
+
+enable_depth: false
+enable_thermal: false
+enable_llm_judge: true
+judge_model: claude-haiku-4-5-20251001
+judge_prompt_version: v0
+retriever_type: default
+topk_local: 5
+topk_web: 5
+max_steps: 3
+max_agent_iterations: 3
+retrieval_budget: 5
+trace_level: full
+required_outputs:
+  - answer
+  - evidence
+  - trace
+  - judge

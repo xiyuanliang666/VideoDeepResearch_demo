@@ -1,1 +1,0 @@
-{"sample_id":"vdr_bench_demo_0001","image_path":"data/raw_images/demo.jpg","question":"Identify the key visual clue in the image and find supporting evidence on the web.","reference_answer":"Demo placeholder answer.","metadata":{"split":"demo","benchmark":"VDR-Bench"}}
