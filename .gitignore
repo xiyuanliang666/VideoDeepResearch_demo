@@ -30,3 +30,5 @@ rsagent-v3/video_dr_agent/out_put_frame/
 rsagent-v3/FOCUS/datasets/
 rsagent-v3/FOCUS/selected_frames/
 rsagent-v3/FOCUS/visual_compare/
+.DS_Store
+models/
