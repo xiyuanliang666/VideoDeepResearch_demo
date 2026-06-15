@@ -1,0 +1,59 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"Which team scored the goal shown in the video?\",\n    \"visual_evidence_plan\": \"Examine the scoreboard overlay at 0:50 and player jerseys; confirm team colors and national flags.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Which match is being shown in the video?\",\n    \"visual_evidence_plan\": \"Check the scoreboard at 0:50 for team abbreviations and score; verify with visible player numbers and jersey designs.\",\n    \"web_evidence_plan\": \"Brazil vs Belgium 2018 World Cup\"\n  },\n  {\n    \"sub_question\": \"What is the exact time of the goal in the match?\",\n    \"visual_evidence_plan\": \"Read the time displayed on the scoreboard overlay at 0:50.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Who scored the goal?\",\n    \"visual_evidence_plan\": \"Identify the player celebrating at 0:37 and 1:02; check jersey number and match footage for the shot.\",\n    \"web_evidence_plan\": \"Belgium player number 7 2018 World Cup\"\n  },\n  {\n    \"sub_question\": \"What was the tournament stage of the Brazil vs Belgium match?\",\n    \"visual_evidence_plan\": \"Use the 'Russia 2018' logo visible at 1:02 and match context from the scoreboard.\",\n    \"web_evidence_plan\": \"Brazil vs Belgium 2018 World Cup stage\"\n  },\n  {\n    \"sub_question\": \"Did the defending side make an initial interception or block in a low-box defensive situation, then fail to protect the second ball and shooting angle, allowing the scorer to turn inside the penalty area and finish with a low shot?\",\n    \"visual_evidence_plan\": \"Analyze the sequence from 0:00 to 0:25 for defensive actions near the goal; check if a defender blocked the initial shot, then the ball rebounded or was controlled by the attacker who turned and shot low.\",\n    \"web_evidence_plan\": \"Belgium vs Brazil 2018 World Cup goal analysis Kevin De Bruyne\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "Which team scored the goal shown in the video?",
+      "visual_evidence_plan": "Examine the scoreboard overlay at 0:50 and player jerseys; confirm team colors and national flags.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Which match is being shown in the video?",
+      "visual_evidence_plan": "Check the scoreboard at 0:50 for team abbreviations and score; verify with visible player numbers and jersey designs.",
+      "web_evidence_plan": "Brazil vs Belgium 2018 World Cup",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the exact time of the goal in the match?",
+      "visual_evidence_plan": "Read the time displayed on the scoreboard overlay at 0:50.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Who scored the goal?",
+      "visual_evidence_plan": "Identify the player celebrating at 0:37 and 1:02; check jersey number and match footage for the shot.",
+      "web_evidence_plan": "Belgium player number 7 2018 World Cup",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What was the tournament stage of the Brazil vs Belgium match?",
+      "visual_evidence_plan": "Use the 'Russia 2018' logo visible at 1:02 and match context from the scoreboard.",
+      "web_evidence_plan": "Brazil vs Belgium 2018 World Cup stage",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Did the defending side make an initial interception or block in a low-box defensive situation, then fail to protect the second ball and shooting angle, allowing the scorer to turn inside the penalty area and finish with a low shot?",
+      "visual_evidence_plan": "Analyze the sequence from 0:00 to 0:25 for defensive actions near the goal; check if a defender blocked the initial shot, then the ball rebounded or was controlled by the attacker who turned and shot low.",
+      "web_evidence_plan": "Belgium vs Brazil 2018 World Cup goal analysis Kevin De Bruyne",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

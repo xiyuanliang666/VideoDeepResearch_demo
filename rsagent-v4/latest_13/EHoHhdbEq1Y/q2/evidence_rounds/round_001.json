@@ -1,0 +1,83 @@
+{
+  "round": 1,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 0,
+        "directive": "Use video_frame_extract to inspect scene 4 (painting of a house on a mountain) and scene 7 (book titled 'MY ADVENTURE BOOK') for any visible text, symbols, or imagery indicating a specific destination name. Look for words like 'Paradise Falls', 'Angel Falls', or similar. If no text is visible, note the visual characteristics (e.g., waterfall, mountain, house) for later matching."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  },
+  "tasks": [
+    {
+      "sq_id": 0,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 112.5, \"time_end_sec\": 113.5}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 112.5,
+                "time_end_sec": 113.5
+              },
+              "parse_error": null
+            },
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 187.5, \"time_end_sec\": 188.5}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 187.5,
+                "time_end_sec": 188.5
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            },
+            {
+              "tool_run_index": 1,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Up movie house on mountain with waterfall destination name\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Up movie house on mountain with waterfall destination name"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "The result identifies Paradise Falls from 'Up' as the recurring unrealized destination, directly linking it to the visual cues in the video, and confirms its real-world inspiration (Angel Falls), which supports the sub-question."
+            }
+          ]
+        },
+        {
+          "inner_round": 3,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+Sampling 8 overview frames...
+  -> 8 frames extracted
+Running visual preprocessing...
+  -> 8 scenes identified
+  -> OCR enabled: True; YOLO enabled: True
+Running pipeline (max_rounds=6)...
+
+========================================================================
+FINAL ANSWER
+========================================================================
+- Final answer: Michael Winslow's earliest performance work was on *The Gong Show* in 1978.  
+- Evidence basis: The neutral officer in the police-station scene was identified as the character Larvell Jones from *Police Academy (1984)*, played by Michael Winslow, based on visual matching and web evidence. Web evidence further confirms that Michael Winslow’s earliest performance work was on *The Gong Show* in 1978, as cited from Wikipedia and corroborated by biographical sources.  
+- Limitations: None — all sub-questions are supported with sufficient, consistent evidence.
+
+Trace saved to: /tmp/rsagent-v4/runs/latest_13/QxGWpfO9qQw/q2/

@@ -1,0 +1,63 @@
+{
+  "round": 2,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 1,
+        "directive": "Use video_frame_extract to analyze frames 156.2s and 220s to describe the visual appearance and role of the neutral officer. Focus on: hair color and length, facial features, uniform details (e.g., badge, rank insignia), posture, and behavior (e.g., observing, walking with purpose). Also note if he interacts with others or remains in the background."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  },
+  "tasks": [
+    {
+      "sq_id": 1,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 155.0, \"time_end_sec\": 157.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 155.0,
+                "time_end_sec": 157.0
+              },
+              "parse_error": null
+            },
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 219.0, \"time_end_sec\": 221.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 219.0,
+                "time_end_sec": 221.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            },
+            {
+              "tool_run_index": 1,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    }
+  ]
+}

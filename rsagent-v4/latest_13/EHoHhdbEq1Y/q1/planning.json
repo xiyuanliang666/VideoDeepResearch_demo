@@ -1,0 +1,59 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"What is the two-person travel plan shown in the video?\",\n    \"visual_evidence_plan\": \"Inspect scenes with the couple lying on the picnic blanket (scene 2) and the painting of the house on a mountain (scene 4); identify the destination or activity they are planning.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What is the name of the destination shown in the painting in the video?\",\n    \"visual_evidence_plan\": \"Examine the painting in scene 4; look for any visible text, symbols, or distinctive features that identify the location.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What real-world location corresponds to the fictional destination shown in the painting?\",\n    \"visual_evidence_plan\": \"Use the visual features of the painting (e.g., mountain, house, waterfall) as anchors.\",\n    \"web_evidence_plan\": \"Up Paradise Falls real life Angel Falls\"\n  },\n  {\n    \"sub_question\": \"What is the unconventional travel method the protagonist uses later in the story?\",\n    \"visual_evidence_plan\": \"Inspect scenes after the travel plan is interrupted; look for visual cues of the new travel method (e.g., balloons, house floating).\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What is the real-world activity closest to the unconventional travel method of floating a house with balloons?\",\n    \"visual_evidence_plan\": \"Use the visual description of the travel method (e.g., house lifted by balloons) as the anchor.\",\n    \"web_evidence_plan\": \"longest duration balloon flight record\"\n  },\n  {\n    \"sub_question\": \"As of 2026, what is the duration and record holder of the longest-duration Guinness World Record for the closest real-world activity to floating a house with balloons?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Guinness World Record longest duration balloon flight 2026\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "What is the two-person travel plan shown in the video?",
+      "visual_evidence_plan": "Inspect scenes with the couple lying on the picnic blanket (scene 2) and the painting of the house on a mountain (scene 4); identify the destination or activity they are planning.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the name of the destination shown in the painting in the video?",
+      "visual_evidence_plan": "Examine the painting in scene 4; look for any visible text, symbols, or distinctive features that identify the location.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What real-world location corresponds to the fictional destination shown in the painting?",
+      "visual_evidence_plan": "Use the visual features of the painting (e.g., mountain, house, waterfall) as anchors.",
+      "web_evidence_plan": "Up Paradise Falls real life Angel Falls",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the unconventional travel method the protagonist uses later in the story?",
+      "visual_evidence_plan": "Inspect scenes after the travel plan is interrupted; look for visual cues of the new travel method (e.g., balloons, house floating).",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the real-world activity closest to the unconventional travel method of floating a house with balloons?",
+      "visual_evidence_plan": "Use the visual description of the travel method (e.g., house lifted by balloons) as the anchor.",
+      "web_evidence_plan": "longest duration balloon flight record",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "As of 2026, what is the duration and record holder of the longest-duration Guinness World Record for the closest real-world activity to floating a house with balloons?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Guinness World Record longest duration balloon flight 2026",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

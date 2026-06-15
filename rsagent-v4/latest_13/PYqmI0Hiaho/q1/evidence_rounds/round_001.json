@@ -1,0 +1,193 @@
+{
+  "round": 1,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 0,
+        "directive": "Use video_frame_extract on scene_3 (37.5-50.0s) to verify if the celebrating Belgian player is wearing jersey number 7. Check close-up frames for clear number visibility. If number 7 is confirmed, mark as supported. If not, rule out this goal as the one scored by #7."
+      },
+      {
+        "sq_id": 1,
+        "directive": "Use video_frame_extract on scene_4 (50.0-62.5s) to verify if the dribbling Belgian player is wearing jersey number 9. Check frames for clear number visibility. If number 9 is confirmed, mark as supported. If not, rule out this goal as the one scored by #9."
+      },
+      {
+        "sq_id": 2,
+        "directive": "Use web_search to retrieve official match data for Belgium vs Brazil 2018 World Cup, including goals, assists, and timing. Use the scoreboard text 'BRA 0 - 1 BEL' and '30:41' from frame 49.96s as anchor. Confirm match, tournament stage, and goal details."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  },
+  "tasks": [
+    {
+      "sq_id": 0,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 37.5, \"time_end_sec\": 50.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 37.5,
+                "time_end_sec": 50.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 1,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 50.0, \"time_end_sec\": 62.5}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 50.0,
+                "time_end_sec": 62.5
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 2,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup official match report goals assists timing\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup official match report goals assists timing"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result only provides the final score and a vague summary without specific goals, assists, or timing details required by the sub-question. No usable match data is included."
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup group stage match goals assists timing official FIFA report\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup group stage match goals assists timing official FIFA report"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result provides only a summary and video link, not official match data such as goals, assists, or timing. No specific statistics or structured data are included, and the summary does not distinguish between competing candidates or provide usable entities for further hops."
+            }
+          ]
+        },
+        {
+          "inner_round": 3,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup match official goals and assists FIFA.com\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup match official goals and assists FIFA.com"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result mentions the final score (Brazil 1-2 Belgium) and match date, but does not provide detailed official match data such as goals, assists, or timing of events. It also references YouTube highlights and lacks specific player contributions or timestamps, which are required to answer the sub-question fully."
+            }
+          ]
+        },
+        {
+          "inner_round": 4,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup match goals assists timing FIFA official report\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup match goals assists timing FIFA official report"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result provides only the final score and general context (e.g., 'Belgium eliminates Brazil') but does not include specific match data such as goals, assists, or timing. The summary explicitly states no pages contained relevant information, and the snippets lack detailed statistics needed to answer the sub-question."
+            }
+          ]
+        },
+        {
+          "inner_round": 5,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup official match report goals assists timing FIFA\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup official match report goals assists timing FIFA"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result mentions the final score (Brazil 1-2 Belgium) and the date, but does not provide detailed match data such as goals, assists, or timing of events. It also references a video and comments without offering specific, structured data needed to answer the sub-question."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

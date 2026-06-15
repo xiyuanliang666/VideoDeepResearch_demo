@@ -1,0 +1,11 @@
+{
+  "round": 6,
+  "coordinator_action": {
+    "action": "all_resolved",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [],
+    "add_sub_questions": [],
+    "merge_ids": []
+  }
+}

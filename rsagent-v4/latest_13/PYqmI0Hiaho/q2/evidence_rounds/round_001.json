@@ -1,0 +1,385 @@
+{
+  "round": 1,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 0,
+        "directive": "Use video_frame_extract to examine the scoreboard overlay at 0:50 and player jerseys. Identify team colors, national flags, and any visible team abbreviations. Compare with known national team kits from the 2018 World Cup to determine which team scored."
+      },
+      {
+        "sq_id": 1,
+        "directive": "Use video_frame_extract to check the scoreboard at 0:50 for team abbreviations, score, and match context. Cross-reference with visible player numbers and jersey designs. Then use web_search to verify if the match is Brazil vs Belgium in the 2018 World Cup, using the visual clues as anchors."
+      },
+      {
+        "sq_id": 2,
+        "directive": "Use video_frame_extract to read the exact time displayed on the scoreboard overlay at 0:50. If the time is not clear, examine frames around 0:50 for any clock or timer display."
+      },
+      {
+        "sq_id": 3,
+        "directive": "Use video_frame_extract to identify the player celebrating at 0:37 and 1:02. Note the jersey number and any visible name. Then use web_search to identify the Belgium player number 7 from the 2018 World Cup, using the jersey number and match context as anchors."
+      },
+      {
+        "sq_id": 4,
+        "directive": "Use video_frame_extract to locate the 'Russia 2018' logo at 1:02 and match context from the scoreboard. Then use web_search to confirm the tournament stage of the Brazil vs Belgium match in the 2018 World Cup, using the match name and tournament as anchors."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  },
+  "tasks": [
+    {
+      "sq_id": 0,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 50.0, \"time_end_sec\": 51.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 50.0,
+                "time_end_sec": 51.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 1,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 50.0, \"time_end_sec\": 51.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 50.0,
+                "time_end_sec": 51.0
+              },
+              "parse_error": null
+            },
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Brazil vs Belgium 2018 World Cup match result\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Brazil vs Belgium 2018 World Cup match result"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            },
+            {
+              "tool_run_index": 1,
+              "keep": true,
+              "reason": "The result provides a direct link to a YouTube video titled 'Brazil v Belgium | 2018 FIFA World Cup | Match Highlights', which directly identifies the match being shown in the video."
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup quarter-final score\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup quarter-final score"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result provides a score and summary of the Belgium vs Brazil 2018 World Cup quarter-final, but does not confirm whether this specific match is the one shown in the video. It lacks direct evidence linking the video content to this match, such as visual or contextual confirmation from the video itself."
+            }
+          ]
+        },
+        {
+          "inner_round": 3,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 50.0, \"time_end_sec\": 51.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 50.0,
+                "time_end_sec": 51.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 4,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Brazil vs Belgium 2018 World Cup quarter-final scoreline\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Brazil vs Belgium 2018 World Cup quarter-final scoreline"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "Directly identifies the match as Brazil vs Belgium in the 2018 World Cup quarter-final, including score and date, which directly answers the sub-question."
+            }
+          ]
+        },
+        {
+          "inner_round": 5,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 2,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 49.0, \"time_end_sec\": 51.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 49.0,
+                "time_end_sec": 51.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 3,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 37.0, \"time_end_sec\": 38.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 37.0,
+                "time_end_sec": 38.0
+              },
+              "parse_error": null
+            },
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 62.0, \"time_end_sec\": 63.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 62.0,
+                "time_end_sec": 63.0
+              },
+              "parse_error": null
+            },
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium player number 7 2018 World Cup\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium player number 7 2018 World Cup"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            },
+            {
+              "tool_run_index": 1,
+              "keep": true,
+              "reason": "visual evidence kept"
+            },
+            {
+              "tool_run_index": 2,
+              "keep": false,
+              "reason": "The result does not identify who scored the goal; it only mentions Romelu Lukaku as a key player without linking him to a specific goal or match. No direct or discriminating fact about the scorer is provided."
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium player De Bruyne 2018 World Cup number 7\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium player De Bruyne 2018 World Cup number 7"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": false,
+              "reason": "The result mentions Kevin De Bruyne and his involvement in the 2018 World Cup, including a long-range goal against Brazil, but does not explicitly state that he scored the goal in question. Without confirmation that this specific goal is the one being asked about, the result is not directly relevant."
+            }
+          ]
+        },
+        {
+          "inner_round": 3,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium vs Brazil 2018 World Cup goal scorer Kevin De Bruyne\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium vs Brazil 2018 World Cup goal scorer Kevin De Bruyne"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "Directly states that Kevin De Bruyne scored a goal for Belgium against Brazil in the 2018 FIFA World Cup, answering the sub-question."
+            }
+          ]
+        },
+        {
+          "inner_round": 4,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 37.5, \"time_end_sec\": 40.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 37.5,
+                "time_end_sec": 40.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 5,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Belgium player number 7 2018 World Cup Kevin De Bruyne\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Belgium player number 7 2018 World Cup Kevin De Bruyne"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "The result directly identifies Kevin De Bruyne as the scorer of an iconic long-range goal for Belgium in the 2018 World Cup quarter-final against Brazil, which directly answers the sub-question 'Who scored the goal?'."
+            }
+          ]
+        },
+        {
+          "inner_round": 6,
+          "forced_summary": true,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 4,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 62.5, \"time_end_sec\": 63.5}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 62.5,
+                "time_end_sec": 63.5
+              },
+              "parse_error": null
+            },
+            {
+              "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Brazil vs Belgium 2018 World Cup tournament stage\"}}",
+              "name": "deep_research_web_search",
+              "arguments": {
+                "query": "Brazil vs Belgium 2018 World Cup tournament stage"
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            },
+            {
+              "tool_run_index": 1,
+              "keep": true,
+              "reason": "The result explicitly states that the Brazil vs Belgium match was part of the 2018 FIFA World Cup and that Belgium reached the semifinals after winning, indicating the match was the quarterfinal stage."
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    }
+  ]
+}

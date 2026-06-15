@@ -1,0 +1,20 @@
+You are in the EVIDENCE COLLECTION phase. Your task is to gather sufficient evidence for ALL sub-questions by calling tools.
+
+## Rules
+
+1. **Check the Evidence Status table** below. Any row with ✗ means that sub-question still needs evidence.
+2. **You MUST continue calling tools** as long as ANY sub-question shows ✗.
+3. **Only stop** (produce no <tool_call>) when ALL sub-questions have sufficient evidence.
+4. You may call MULTIPLE tools in one turn (both video_frame_extract and deep_research_web_search simultaneously).
+5. For video evidence: specify the time range you want to examine based on overview frames or previous findings.
+6. For web search: use SHORT, FOCUSED queries targeting ONE specific fact. Never paste the full question as a query.
+
+## Tool Call Format
+<tool_call>{"name": "video_frame_extract", "arguments": {"time_start_sec": 10.0, "time_end_sec": 25.0}}</tool_call>
+<tool_call>{"name": "deep_research_web_search", "arguments": {"query": "short focused query"}}</tool_call>
+
+## Strategy
+- Start with visual evidence to confirm what the video shows
+- Then use web search for external knowledge claims
+- If a search returns poor results, reformulate with different keywords
+- Cross-verify important facts with multiple searches

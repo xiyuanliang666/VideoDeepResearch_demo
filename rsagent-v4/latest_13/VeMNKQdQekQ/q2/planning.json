@@ -1,0 +1,50 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"Which shop is shown in the flashback segment, and what is its name?\",\n    \"visual_evidence_plan\": \"Examine the first scene (0.0-63.9s) for the shop sign; verify the text 'HOTEL TANGUY' is visible.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Who is the main person being discussed in the video, based on visual cues and context?\",\n    \"visual_evidence_plan\": \"Inspect the monochrome scenes (63.9s-447.4s) for recurring characters; identify the man with a mustache (scene 2) and the man with a beard and bowler hat (scene 6) as potential candidates.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What is the historical figure associated with the shop named 'Hotel Tanguy'?\",\n    \"visual_evidence_plan\": \"Use the shop name 'Hotel Tanguy' as a visual anchor.\",\n    \"web_evidence_plan\": \"Hotel Tanguy Vincent van Gogh\"\n  },\n  {\n    \"sub_question\": \"In the year implied by the flashback, what place did Vincent van Gogh leave for the next, and what was the social event that forced him out of his residence?\",\n    \"visual_evidence_plan\": \"Use the visual context of the flashback (street scene, shop) to infer the time period; note the presence of sunflowers (scene 7) and the intimate scenes (scenes 3, 5) as contextual clues.\",\n    \"web_evidence_plan\": \"Vincent van Gogh left Paris for Arles 1888 forced out of residence social event\"\n  },\n  {\n    \"sub_question\": \"What was the specific social event that forced Vincent van Gogh out of his residence in Arles?\",\n    \"visual_evidence_plan\": \"Use the visual cues of the sunflowers (scene 7) and the intimate scenes (scenes 3, 5) to anchor the time period and context.\",\n    \"web_evidence_plan\": \"Vincent van Gogh Arles 1888 social event forced out residence\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "Which shop is shown in the flashback segment, and what is its name?",
+      "visual_evidence_plan": "Examine the first scene (0.0-63.9s) for the shop sign; verify the text 'HOTEL TANGUY' is visible.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Who is the main person being discussed in the video, based on visual cues and context?",
+      "visual_evidence_plan": "Inspect the monochrome scenes (63.9s-447.4s) for recurring characters; identify the man with a mustache (scene 2) and the man with a beard and bowler hat (scene 6) as potential candidates.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the historical figure associated with the shop named 'Hotel Tanguy'?",
+      "visual_evidence_plan": "Use the shop name 'Hotel Tanguy' as a visual anchor.",
+      "web_evidence_plan": "Hotel Tanguy Vincent van Gogh",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "In the year implied by the flashback, what place did Vincent van Gogh leave for the next, and what was the social event that forced him out of his residence?",
+      "visual_evidence_plan": "Use the visual context of the flashback (street scene, shop) to infer the time period; note the presence of sunflowers (scene 7) and the intimate scenes (scenes 3, 5) as contextual clues.",
+      "web_evidence_plan": "Vincent van Gogh left Paris for Arles 1888 forced out of residence social event",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What was the specific social event that forced Vincent van Gogh out of his residence in Arles?",
+      "visual_evidence_plan": "Use the visual cues of the sunflowers (scene 7) and the intimate scenes (scenes 3, 5) to anchor the time period and context.",
+      "web_evidence_plan": "Vincent van Gogh Arles 1888 social event forced out residence",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

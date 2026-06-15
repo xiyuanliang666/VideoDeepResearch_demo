@@ -1,0 +1,49 @@
+{
+  "round": 5,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 0,
+        "directive": "Use video_frame_extract to examine the entire opening sequence from 0:00 to 4:25 for any on-screen text, title cards, or visual cues that might indicate the title of the montage. Specifically look for text overlays, subtitles, or any visual elements that spell out a name (e.g., 'Married Life', 'A Life in Pictures', etc.). If no text is found, confirm the sequence is a life montage by analyzing recurring props (camera, lightbulb, book, etc.) and editing style (montage cuts, emotional progression)."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  },
+  "tasks": [
+    {
+      "sq_id": 0,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 0.0, \"time_end_sec\": 250.0}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 0.0,
+                "time_end_sec": 250.0
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    }
+  ]
+}

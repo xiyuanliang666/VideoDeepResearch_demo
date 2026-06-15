@@ -1,0 +1,59 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"Which three characters are shown entering the door in the video?\",\n    \"visual_evidence_plan\": \"Examine frames around 0:27-0:54 where the hatch is approached and entered; identify the characters present at the hatch entrance.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What abstract visual scenes do the characters pass through after entering the door?\",\n    \"visual_evidence_plan\": \"Inspect frames from 1:21 to 2:15, particularly scenes 4, 5, and 6, showing the dark environment, geometric fragments, and reassembly; describe the visual style of fragmentation and reconstruction.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Which pioneering artist's portraits are said to resemble the first stage of fragmentation shown in the video?\",\n    \"visual_evidence_plan\": \"Use the visual description of the geometric fragmentation (e.g., angular, broken forms) as a visual anchor.\",\n    \"web_evidence_plan\": \"Cubism fragmentation style pioneer Picasso Braque\"\n  },\n  {\n    \"sub_question\": \"Which artist co-founded the art movement with the pioneer identified above?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Cubism co-founder Picasso Braque\"\n  },\n  {\n    \"sub_question\": \"What is the name of the 2018 European crime animated feature film heavily influenced by this Cubist style?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"2018 European animated crime film Cubist style\"\n  },\n  {\n    \"sub_question\": \"What is the worldwide gross of that 2018 film according to Box Office Mojo, using the film's country of origin as the source?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Box Office Mojo 2018 European animated crime film [film name] worldwide gross\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "Which three characters are shown entering the door in the video?",
+      "visual_evidence_plan": "Examine frames around 0:27-0:54 where the hatch is approached and entered; identify the characters present at the hatch entrance.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What abstract visual scenes do the characters pass through after entering the door?",
+      "visual_evidence_plan": "Inspect frames from 1:21 to 2:15, particularly scenes 4, 5, and 6, showing the dark environment, geometric fragments, and reassembly; describe the visual style of fragmentation and reconstruction.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Which pioneering artist's portraits are said to resemble the first stage of fragmentation shown in the video?",
+      "visual_evidence_plan": "Use the visual description of the geometric fragmentation (e.g., angular, broken forms) as a visual anchor.",
+      "web_evidence_plan": "Cubism fragmentation style pioneer Picasso Braque",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Which artist co-founded the art movement with the pioneer identified above?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Cubism co-founder Picasso Braque",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the name of the 2018 European crime animated feature film heavily influenced by this Cubist style?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "2018 European animated crime film Cubist style",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the worldwide gross of that 2018 film according to Box Office Mojo, using the film's country of origin as the source?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Box Office Mojo 2018 European animated crime film [film name] worldwide gross",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

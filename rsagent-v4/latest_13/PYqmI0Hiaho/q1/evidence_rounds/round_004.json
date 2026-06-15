@@ -1,0 +1,20 @@
+{
+  "round": 4,
+  "coordinator_action": {
+    "action": "adjust_plan",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [],
+    "add_sub_questions": [
+      {
+        "text": "What is the official assist provider for the goal scored by Kevin De Bruyne in the 31st minute of the Belgium vs Brazil 2018 World Cup match?",
+        "visual_plan": "Examine frames from scene_2 (25.0-37.5s) for the pass leading to the goal, focusing on the player who delivered the final pass before De Bruyne shot.",
+        "web_plan": "Search for 'Belgium vs Brazil 2018 World Cup Kevin De Bruyne goal assist' using official FIFA sources or match reports."
+      }
+    ],
+    "merge_ids": [
+      4,
+      6
+    ]
+  }
+}

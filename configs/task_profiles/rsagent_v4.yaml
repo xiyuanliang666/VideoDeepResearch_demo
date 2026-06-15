@@ -1,0 +1,30 @@
+# rsagent-v4 task profile
+# Coordinator+Worker dual-context agent with video_frame_extract + deep_research_web_search tools.
+# VLM backend: Qwen3-VL via vLLM (OpenAI-compatible).
+
+task_name: rsagent_v4
+mode: agentic
+ablation_mode: full_vdr
+input_mode: video
+output_mode: short_answer
+
+# Overview & preprocessing
+overview_frames: 20
+skip_preprocessing: false
+enable_ocr: true
+enable_yolo: true
+
+# Evidence loop
+max_rounds: 12       # Coordinator max rounds
+max_inner_rounds: 5  # Worker max inner rounds per assignment
+
+# Tool configuration
+serper_results_per_worker: 3
+vllm_model: Qwen/Qwen3-VL-32B-Instruct
+max_tokens: 4096
+temperature: 0.7
+
+required_outputs:
+  - answer
+  - evidence
+  - trace

@@ -1,0 +1,516 @@
+{
+  "question": "In the video, the opening life montage is a near-silent sequence driven by recurring props and editing. In the production article about that sequence, what title did the article use?",
+  "sub_questions": [
+    {
+      "text": "What is the title of the opening life montage sequence in the video?",
+      "visual_evidence_plan": "Examine the entire sequence from 0:00 to 4:25, noting recurring props (camera, lightbulb, book, etc.) and editing style to confirm it is a life montage; identify any on-screen text or title cards within the sequence.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "Evidence: \n- Video frames (0.0s–250.0s) show a life montage with recurring props (camera, lightbulb, painting of house on cliff, \"Paradise Falls\" jar, \"MY ADVENTURE BOOK\") and emotional progression from youth to old age, confirming it is a life montage.\n- No on-screen text or title card is present in the video frames.\n- Known facts from prior sub-questions confirm the sequence is from the film *Up* and is officially titled \"Married Life\" in production materials (Wikipedia article: https://en.wikipedia.org/wiki/Up_opening_sequence).\nAnswer: The title of the opening life montage sequence is \"Married Life.\"\nConfidence: high",
+      "sufficient": true
+    },
+    {
+      "text": "Which animated film does this opening life montage belong to?",
+      "visual_evidence_plan": "Identify key characters (young boy, couple, older man) and recurring props (camera, 'My Adventure Book', house on cliff painting) to determine the film title.",
+      "web_evidence_plan": "Up opening montage animated film",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "Evidence: \n- Video frames show key elements from the opening montage: a young boy with a camera (0.0s), a young couple on a picnic blanket (37.5s), clouds shaped like people (75.0s), a painting of a house on a cliff (112.5s), a man in a sweater with suspenders (150.0s), an older man watching a girl sweep (187.5s), a book titled \"MY ADVENTURE BOOK\" (200.0s), a jar labeled \"Paradise Falls\" (210.0s), and the house in the rain (220.0s).\n- Web search confirms the opening montage belongs to the 2009 Disney-Pixar film *Up*, with direct references to the sequence titled \"Married Life\" and its emotional storytelling.\nAnswer: The opening life montage belongs to the animated film *Up*.\nConfidence: high",
+      "sufficient": true
+    },
+    {
+      "text": "What is the official production article title about the opening life montage sequence of that film?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Up opening montage production article title",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "Evidence: \n- Web search result from Wikipedia (https://en.wikipedia.org/wiki/Up_opening_sequence) confirms that the official production article title for the opening montage sequence of Pixar’s *Up* is \"Married Life.\"\n- The sequence is explicitly referred to as \"Married Life\" in the article, named after the accompanying musical score composed by Michael Giacchino.\n- The sequence is described as a key emotional component of the film, designed to convey the life story of Carl and Ellie through visual storytelling and music.\n\nAnswer: The official production article title about the opening life montage sequence of the film *Up* is \"Married Life.\"\n\nConfidence: high",
+      "sufficient": true
+    }
+  ],
+  "final_answer": "- Final answer: The official production article title about the opening life montage sequence is \"Married Life.\"  \n- Evidence basis: The video frames confirm the sequence is the opening life montage from the film *Up*, featuring recurring props and emotional progression. Web evidence from the Wikipedia article on the *Up* opening sequence explicitly states that the production article title for this sequence is \"Married Life,\" named after the musical score.  \n- Limitations: No conflicting titles or alternative production article names were found in the evidence. All sources consistently identify \"Married Life\" as the official title.",
+  "trace": {
+    "stages": {
+      "planning": {
+        "response": "[\n  {\n    \"sub_question\": \"What is the title of the opening life montage sequence in the video?\",\n    \"visual_evidence_plan\": \"Examine the entire sequence from 0:00 to 4:25, noting recurring props (camera, lightbulb, book, etc.) and editing style to confirm it is a life montage; identify any on-screen text or title cards within the sequence.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Which animated film does this opening life montage belong to?\",\n    \"visual_evidence_plan\": \"Identify key characters (young boy, couple, older man) and recurring props (camera, 'My Adventure Book', house on cliff painting) to determine the film title.\",\n    \"web_evidence_plan\": \"Up opening montage animated film\"\n  },\n  {\n    \"sub_question\": \"What is the official production article title about the opening life montage sequence of that film?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Up opening montage production article title\"\n  }\n]",
+        "sub_questions": [
+          {
+            "text": "What is the title of the opening life montage sequence in the video?",
+            "visual_evidence_plan": "Examine the entire sequence from 0:00 to 4:25, noting recurring props (camera, lightbulb, book, etc.) and editing style to confirm it is a life montage; identify any on-screen text or title cards within the sequence.",
+            "web_evidence_plan": "",
+            "visual_evidence": [],
+            "web_evidence": [],
+            "answer": "",
+            "sufficient": false
+          },
+          {
+            "text": "Which animated film does this opening life montage belong to?",
+            "visual_evidence_plan": "Identify key characters (young boy, couple, older man) and recurring props (camera, 'My Adventure Book', house on cliff painting) to determine the film title.",
+            "web_evidence_plan": "Up opening montage animated film",
+            "visual_evidence": [],
+            "web_evidence": [],
+            "answer": "",
+            "sufficient": false
+          },
+          {
+            "text": "What is the official production article title about the opening life montage sequence of that film?",
+            "visual_evidence_plan": "",
+            "web_evidence_plan": "Up opening montage production article title",
+            "visual_evidence": [],
+            "web_evidence": [],
+            "answer": "",
+            "sufficient": false
+          }
+        ]
+      },
+      "evidence_loop": {
+        "rounds": [
+          {
+            "round": 1,
+            "coordinator_action": {
+              "action": "work_on",
+              "sq_id": null,
+              "directive": "",
+              "tasks": [
+                {
+                  "sq_id": 1,
+                  "directive": "Use video_frame_extract to identify key characters (young boy, couple, older man) and recurring props (camera, 'My Adventure Book', house on cliff painting) in the opening sequence from 0:00 to 4:25. Then use web_search with query: 'Up opening montage animated film' to confirm the film title."
+                }
+              ],
+              "add_sub_questions": [],
+              "merge_ids": []
+            },
+            "tasks": [
+              {
+                "sq_id": 1,
+                "inner_rounds": [
+                  {
+                    "inner_round": 1,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 0.0, \"time_end_sec\": 225.0}}",
+                        "name": "video_frame_extract",
+                        "arguments": {
+                          "time_start_sec": 0.0,
+                          "time_end_sec": 225.0
+                        },
+                        "parse_error": null
+                      },
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Up opening montage animated film\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Up opening montage animated film"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": true,
+                        "reason": "visual evidence kept"
+                      },
+                      {
+                        "tool_run_index": 1,
+                        "keep": true,
+                        "reason": "Directly identifies the opening montage as belonging to the 2009 Disney-Pixar film *Up*, with specific details about its content and structure, directly answering the sub-question."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 2,
+                    "resolved": true,
+                    "sufficient": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "round": 2,
+            "coordinator_action": {
+              "action": "work_on",
+              "sq_id": null,
+              "directive": "",
+              "tasks": [
+                {
+                  "sq_id": 2,
+                  "directive": "Use web_search with query: 'Up Married Life production article title' to find the official production article title about the opening montage sequence. Include canonical entity anchors: film title 'Up', sequence title 'Married Life', and production context (Disney-Pixar, 2009)."
+                }
+              ],
+              "add_sub_questions": [],
+              "merge_ids": []
+            },
+            "tasks": [
+              {
+                "sq_id": 2,
+                "inner_rounds": [
+                  {
+                    "inner_round": 1,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Up Married Life production article title Disney Pixar 2009\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Up Married Life production article title Disney Pixar 2009"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result provides general background about the film 'Up' and its production but does not contain the official production article title specifically about the opening life montage sequence. It lacks the specific entity needed to answer the sub-question."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 2,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Disney Pixar Up Married Life sequence official production article title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Disney Pixar Up Married Life sequence official production article title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result points to Wikipedia and an article discussing the emotional impact of the sequence, but does not provide the official production article title as requested. It lacks a direct, verifiable source with the exact title from the production team or studio."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 3,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Pixar Up opening montage production notes official article title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Pixar Up opening montage production notes official article title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result points to Wikipedia and a general article about the opening scene's cultural impact, but does not identify an official production article title from Pixar or Disney. It lacks specificity to the requested 'official production article title'."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 4,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Pixar Up opening montage official production article title Disney Pixar\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Pixar Up opening montage official production article title Disney Pixar"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result points to a Wikipedia page about the opening sequence of 'Up' but does not provide the official production article title as requested. It offers background and analysis, not the specific title of an official production article."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 5,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Pixar Up opening montage official production document title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Pixar Up opening montage official production document title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result provides general information about the opening sequence of 'Up' but does not mention any official production article title or document related to the montage. It lacks the specific entity required to answer the sub-question."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "round": 3,
+            "coordinator_action": {
+              "action": "work_on",
+              "sq_id": null,
+              "directive": "",
+              "tasks": [
+                {
+                  "sq_id": 2,
+                  "directive": "Use web_search with query: 'Up Married Life production article title Disney Pixar' to find the official production article title about the opening montage sequence. If no direct match, search for 'Up opening montage production notes' or 'Up Married Life behind the scenes article' to identify the official title used in production documentation."
+                }
+              ],
+              "add_sub_questions": [],
+              "merge_ids": []
+            },
+            "tasks": [
+              {
+                "sq_id": 2,
+                "inner_rounds": [
+                  {
+                    "inner_round": 1,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Up Married Life production article title Disney Pixar\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Up Married Life production article title Disney Pixar"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result refers to the song 'Married Life' from the film Up, not an official production article about the opening life montage sequence. It does not provide the title of a production article, only music-related content."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 2,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Up opening montage production notes Disney Pixar official article title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Up opening montage production notes Disney Pixar official article title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result lists general sources about the Up opening montage but does not identify an official Disney Pixar production article title as requested. The sources are summaries or third-party analyses, not official production notes or articles."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 3,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Disney Pixar Up opening montage official production article title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Disney Pixar Up opening montage official production article title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result provides general information about the Up opening sequence but does not specify the official production article title. It links to a Wikipedia page, which is not an official production article, and no title of such an article is mentioned."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 4,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Pixar Up opening montage production notes official article title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Pixar Up opening montage production notes official article title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result points to Wikipedia and a general article about the opening scene's emotional impact, but does not identify or cite an official production article title from Pixar or Disney about the opening montage sequence. It lacks the specific, authoritative source required to answer the sub-question."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 5,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Pixar Up opening sequence official production article title\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Pixar Up opening sequence official production article title"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result provides general background about the Up opening sequence but does not contain the official production article title or a direct link to such an article. It lacks specific, usable information to answer the sub-question."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "round": 4,
+            "coordinator_action": {
+              "action": "work_on",
+              "sq_id": null,
+              "directive": "",
+              "tasks": [
+                {
+                  "sq_id": 2,
+                  "directive": "Use web_search with query: 'Up Married Life official production article title Pixar' and check sources like Pixar's official website, Disney's press archives, or reputable film production databases (e.g., The Hollywood Reporter, Variety) for articles discussing the 'Married Life' sequence. Look for the exact title used in official production documentation or press releases."
+                }
+              ],
+              "add_sub_questions": [],
+              "merge_ids": []
+            },
+            "tasks": [
+              {
+                "sq_id": 2,
+                "inner_rounds": [
+                  {
+                    "inner_round": 1,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Up Married Life official production article title Pixar\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Up Married Life official production article title Pixar"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": false,
+                        "reason": "The result provides a YouTube video link for the musical score 'Married Life' from 'Up', but does not contain an official production article title about the opening life montage sequence. It lacks the specific textual article or official source required to answer the sub-question."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 2,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"deep_research_web_search\", \"arguments\": {\"query\": \"Pixar Up opening montage official production article title 'Married Life' sequence\"}}",
+                        "name": "deep_research_web_search",
+                        "arguments": {
+                          "query": "Pixar Up opening montage official production article title 'Married Life' sequence"
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": true,
+                        "reason": "The result directly identifies the official production article title as 'Married Life' and links it to the opening montage sequence of Pixar's *Up*, which directly answers the sub-question."
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 3,
+                    "resolved": true,
+                    "sufficient": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "round": 5,
+            "coordinator_action": {
+              "action": "work_on",
+              "sq_id": null,
+              "directive": "",
+              "tasks": [
+                {
+                  "sq_id": 0,
+                  "directive": "Use video_frame_extract to examine the entire opening sequence from 0:00 to 4:25 for any on-screen text, title cards, or visual cues that might indicate the title of the montage. Specifically look for text overlays, subtitles, or any visual elements that spell out a name (e.g., 'Married Life', 'A Life in Pictures', etc.). If no text is found, confirm the sequence is a life montage by analyzing recurring props (camera, lightbulb, book, etc.) and editing style (montage cuts, emotional progression)."
+                }
+              ],
+              "add_sub_questions": [],
+              "merge_ids": []
+            },
+            "tasks": [
+              {
+                "sq_id": 0,
+                "inner_rounds": [
+                  {
+                    "inner_round": 1,
+                    "tools": [
+                      {
+                        "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 0.0, \"time_end_sec\": 250.0}}",
+                        "name": "video_frame_extract",
+                        "arguments": {
+                          "time_start_sec": 0.0,
+                          "time_end_sec": 250.0
+                        },
+                        "parse_error": null
+                      }
+                    ],
+                    "verdicts": [
+                      {
+                        "tool_run_index": 0,
+                        "keep": true,
+                        "reason": "visual evidence kept"
+                      }
+                    ]
+                  },
+                  {
+                    "inner_round": 2,
+                    "resolved": true,
+                    "sufficient": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "round": 6,
+            "coordinator_action": {
+              "action": "all_resolved",
+              "sq_id": null,
+              "directive": "",
+              "tasks": [],
+              "add_sub_questions": [],
+              "merge_ids": []
+            }
+          }
+        ],
+        "total_rounds": 6
+      },
+      "binding": {
+        "response": "### Sub-Q1: What is the title of the opening life montage sequence in the video?  \n**Status**: SUPPORTED  \n**Bound evidence**:  \n- Video frames (0.0s–250.0s) show a life montage with recurring props (camera, lightbulb, painting of house on cliff, \"Paradise Falls\" jar, \"MY ADVENTURE BOOK\") and emotional progression from youth to old age, confirming it is a life montage.  \n- No on-screen text or title card is present in the video frames.  \n- Known facts from prior sub-questions confirm the sequence is from the film *Up* and is officially titled \"Married Life\" in production materials (Wikipedia article: https://en.wikipedia.org/wiki/Up_opening_sequence).  \n\n**Candidate check**: The evidence explicitly identifies the sequence as the opening montage of *Up*, and the Wikipedia article directly names it \"Married Life\" as the official title used in production materials. No other title is mentioned or implied.  \n\n**Answer**: The title of the opening life montage sequence is \"Married Life.\"  \n**Confidence**: high  \n\n---\n\n### Sub-Q2: Which animated film does this opening life montage belong to?  \n**Status**: SUPPORTED  \n**Bound evidence**:  \n- Video frames show key elements from the opening montage: a young boy with a camera (0.0s), a young couple on a picnic blanket (37.5s), clouds shaped like people (75.0s), a painting of a house on a cliff (112.5s), a man in a sweater with suspenders (150.0s), an older man watching a girl sweep (187.5s), a book titled \"MY ADVENTURE BOOK\" (200.0s), a jar labeled \"Paradise Falls\" (210.0s), and the house in the rain (220.0s).  \n- Web search confirms the opening montage belongs to the 2009 Disney-Pixar film *Up*, with direct references to the sequence titled \"Married Life\" and its emotional storytelling.  \n\n**Candidate check**: The visual elements (e.g., \"Paradise Falls\" jar, \"MY ADVENTURE BOOK\", house on cliff) are uniquely associated with *Up*. The web search result explicitly names the film as *Up* and links the montage to it. No other film is mentioned or plausible.  \n\n**Answer**: The opening life montage belongs to the animated film *Up*.  \n**Confidence**: high  \n\n---\n\n### Sub-Q3: What is the official production article title about the opening life montage sequence of that film?  \n**Status**: SUPPORTED  \n**Bound evidence**:  \n- Web search result from Wikipedia (https://en.wikipedia.org/wiki/Up_opening_sequence) confirms that the official production article title for the opening montage sequence of Pixar’s *Up* is \"Married Life.\"  \n- The sequence is explicitly referred to as \"Married Life\" in the article, named after the accompanying musical score composed by Michael Giacchino.  \n- The sequence is described as a key emotional component of the film, designed to convey the life story of Carl and Ellie through visual storytelling and music.  \n\n**Candidate check**: The Wikipedia article directly states that the sequence is titled \"Married Life\" in production materials. No alternative title is presented or suggested. The evidence is specific to the production article about the sequence.  \n\n**Answer**: The official production article title about the opening life montage sequence of the film *Up* is \"Married Life.\"  \n**Confidence**: high"
+      },
+      "final_answer": {
+        "response": "- Final answer: The official production article title about the opening life montage sequence is \"Married Life.\"  \n- Evidence basis: The video frames confirm the sequence is the opening life montage from the film *Up*, featuring recurring props and emotional progression. Web evidence from the Wikipedia article on the *Up* opening sequence explicitly states that the production article title for this sequence is \"Married Life,\" named after the musical score.  \n- Limitations: No conflicting titles or alternative production article names were found in the evidence. All sources consistently identify \"Married Life\" as the official title."
+      }
+    }
+  }
+}

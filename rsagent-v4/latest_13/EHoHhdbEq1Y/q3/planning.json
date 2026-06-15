@@ -1,0 +1,32 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"What is the title of the opening life montage sequence in the video?\",\n    \"visual_evidence_plan\": \"Examine the entire sequence from 0:00 to 4:25, noting recurring props (camera, lightbulb, book, etc.) and editing style to confirm it is a life montage; identify any on-screen text or title cards within the sequence.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Which animated film does this opening life montage belong to?\",\n    \"visual_evidence_plan\": \"Identify key characters (young boy, couple, older man) and recurring props (camera, 'My Adventure Book', house on cliff painting) to determine the film title.\",\n    \"web_evidence_plan\": \"Up opening montage animated film\"\n  },\n  {\n    \"sub_question\": \"What is the official production article title about the opening life montage sequence of that film?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Up opening montage production article title\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "What is the title of the opening life montage sequence in the video?",
+      "visual_evidence_plan": "Examine the entire sequence from 0:00 to 4:25, noting recurring props (camera, lightbulb, book, etc.) and editing style to confirm it is a life montage; identify any on-screen text or title cards within the sequence.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Which animated film does this opening life montage belong to?",
+      "visual_evidence_plan": "Identify key characters (young boy, couple, older man) and recurring props (camera, 'My Adventure Book', house on cliff painting) to determine the film title.",
+      "web_evidence_plan": "Up opening montage animated film",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the official production article title about the opening life montage sequence of that film?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Up opening montage production article title",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

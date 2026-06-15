@@ -1,0 +1,84 @@
+{
+  "round": 1,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 0,
+        "directive": "video_frame_extract: examine frames 0:27-0:54 to identify the three characters entering the hatch. Describe their appearance, clothing, and any distinguishing features. Ensure all three are clearly identified."
+      },
+      {
+        "sq_id": 1,
+        "directive": "video_frame_extract: inspect frames 1:21-2:15, focusing on scenes 4, 5, and 6. Describe the abstract visual scenes in detail, including the nature of fragmentation (e.g., geometric shapes, angular forms, color palette, reassembly patterns). This will serve as the visual anchor for identifying the artistic influence."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  },
+  "tasks": [
+    {
+      "sq_id": 0,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 27.1, \"time_end_sec\": 54.2}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 27.1,
+                "time_end_sec": 54.2
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    },
+    {
+      "sq_id": 1,
+      "inner_rounds": [
+        {
+          "inner_round": 1,
+          "tools": [
+            {
+              "raw_text": "{\"name\": \"video_frame_extract\", \"arguments\": {\"time_start_sec\": 81.3, \"time_end_sec\": 162.7}}",
+              "name": "video_frame_extract",
+              "arguments": {
+                "time_start_sec": 81.3,
+                "time_end_sec": 162.7
+              },
+              "parse_error": null
+            }
+          ],
+          "verdicts": [
+            {
+              "tool_run_index": 0,
+              "keep": true,
+              "reason": "visual evidence kept"
+            }
+          ]
+        },
+        {
+          "inner_round": 2,
+          "resolved": true,
+          "sufficient": true
+        }
+      ]
+    }
+  ]
+}

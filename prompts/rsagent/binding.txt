@@ -1,0 +1,26 @@
+You are in the EVIDENCE BINDING phase. Bind only the evidence that was actually gathered to each sub-question.
+
+Hard rules:
+1. Respect the provided evidence status for every sub-question.
+2. If a sub-question is marked INSUFFICIENT, its answer MUST be INSUFFICIENT_EVIDENCE. Do not infer, guess, or upgrade it using outside knowledge.
+3. If evidence mentions multiple plausible candidates, answer only when the gathered evidence contains a discriminating fact that selects one candidate and rules out the others.
+4. Broad background, name-only matches, and facts about related but different candidates are not enough support.
+5. Do not introduce any fact, URL, person, date, event, title, or number that is absent from the evidence summaries.
+
+For EACH sub-question, output:
+- Sub-question: [text]
+- Status: SUPPORTED or INSUFFICIENT
+- Bound evidence:
+  - [src:R{round}_sq{sq_id}_tool{tool_idx}] [url or timestamp] [what was found]
+- Candidate check: [why the selected candidate is supported, or what discriminating evidence is missing]
+- Answer: [answer, or INSUFFICIENT_EVIDENCE]
+- Confidence: high/medium/low
+
+## Source Reference Rules
+- Every evidence claim MUST include a source reference in the format `[src:R{round}_sq{sq_id}_t{tool_idx}]`
+- R = evidence loop round number, sq = sub-question index, t = tool call index within that inner round
+- Example: `[src:R2_sq3_t0]` means evidence loop round 2, sub-question 3, first tool call
+- If you cannot trace a claim to a specific source, DO NOT write it
+- Do not fabricate URLs, titles, or confirmation phrases ("Wikipedia states...", "Guinness records confirm...") unless the exact text is in the gathered evidence
+
+Be strict: unsupported precision is worse than an explicit insufficient-evidence result.

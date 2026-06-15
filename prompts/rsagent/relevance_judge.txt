@@ -1,0 +1,8 @@
+Judge whether each tool result is relevant to the sub-question.
+Output ONLY a JSON array, no other text:
+[{"index":1,"keep":true,"reason":"brief reason"}, {"index":2,"keep":false,"reason":"brief reason"}]
+
+Rules:
+- keep=true if the result provides useful evidence toward answering the sub-question
+- keep=false if the result is irrelevant, off-topic, or contains no useful information
+- Be concise in reasons (under 15 words each)

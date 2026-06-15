@@ -1,0 +1,50 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"Does the video show a police-station situation involving two travelers being detained?\",\n    \"visual_evidence_plan\": \"Inspect scenes 3 and 4 (time range 156.2–312.4 seconds) for visual cues of a police station, detained individuals, and interactions with uniformed officers.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Is there a phone call shown or referenced in the video that leads to the travelers' release?\",\n    \"visual_evidence_plan\": \"Examine scenes 3 and 4 for dialogue or visual cues (e.g., phone, officer speaking) indicating a phone call that results in the release.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Who is identified in the video as the key helper in the phone-call chain?\",\n    \"visual_evidence_plan\": \"Inspect dialogue or visual cues during or after the release sequence (scenes 3–5) to identify who was called or mentioned as the helper.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What film or event does this police-station release sequence correspond to?\",\n    \"visual_evidence_plan\": \"Use visible characters, setting, and dialogue names as anchors; note the presence of a man in a suit (scene 5–6) and a car journey (scene 7).\",\n    \"web_evidence_plan\": \"Green Book film police station release travelers\"\n  },\n  {\n    \"sub_question\": \"Which governor was pressured in that release event?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Green Book Robert Kennedy pressures governor police release Ross Barnett\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "Does the video show a police-station situation involving two travelers being detained?",
+      "visual_evidence_plan": "Inspect scenes 3 and 4 (time range 156.2–312.4 seconds) for visual cues of a police station, detained individuals, and interactions with uniformed officers.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Is there a phone call shown or referenced in the video that leads to the travelers' release?",
+      "visual_evidence_plan": "Examine scenes 3 and 4 for dialogue or visual cues (e.g., phone, officer speaking) indicating a phone call that results in the release.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Who is identified in the video as the key helper in the phone-call chain?",
+      "visual_evidence_plan": "Inspect dialogue or visual cues during or after the release sequence (scenes 3–5) to identify who was called or mentioned as the helper.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What film or event does this police-station release sequence correspond to?",
+      "visual_evidence_plan": "Use visible characters, setting, and dialogue names as anchors; note the presence of a man in a suit (scene 5–6) and a car journey (scene 7).",
+      "web_evidence_plan": "Green Book film police station release travelers",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Which governor was pressured in that release event?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Green Book Robert Kennedy pressures governor police release Ross Barnett",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

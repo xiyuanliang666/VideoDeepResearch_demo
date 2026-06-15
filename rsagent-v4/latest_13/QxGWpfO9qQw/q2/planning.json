@@ -1,0 +1,41 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"In the police-station hallway scene, which officer does not display clear hostility or arrogance?\",\n    \"visual_evidence_plan\": \"Examine scene 3 (156.2–234.3 seconds) for officers in the hallway; identify the officer who appears more neutral or observant compared to others who may seem aggressive or dismissive.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What is the visual appearance and role of that neutral officer in the scene?\",\n    \"visual_evidence_plan\": \"Inspect the officer's uniform, posture, facial expression, and position in the hallway (e.g., leaning against a wall, observing) to distinguish him from others.\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"Who is the actor playing that neutral officer?\",\n    \"visual_evidence_plan\": \"Use the officer's appearance (e.g., balding, green uniform, lean posture) as a visual anchor for identification.\",\n    \"web_evidence_plan\": \"balding officer green uniform police station scene actor\"\n  },\n  {\n    \"sub_question\": \"What is the name of that actor's earliest performance work?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"actor [actor name] earliest performance work\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "In the police-station hallway scene, which officer does not display clear hostility or arrogance?",
+      "visual_evidence_plan": "Examine scene 3 (156.2–234.3 seconds) for officers in the hallway; identify the officer who appears more neutral or observant compared to others who may seem aggressive or dismissive.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the visual appearance and role of that neutral officer in the scene?",
+      "visual_evidence_plan": "Inspect the officer's uniform, posture, facial expression, and position in the hallway (e.g., leaning against a wall, observing) to distinguish him from others.",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "Who is the actor playing that neutral officer?",
+      "visual_evidence_plan": "Use the officer's appearance (e.g., balding, green uniform, lean posture) as a visual anchor for identification.",
+      "web_evidence_plan": "balding officer green uniform police station scene actor",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the name of that actor's earliest performance work?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "actor [actor name] earliest performance work",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

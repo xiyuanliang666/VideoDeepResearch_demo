@@ -1,0 +1,59 @@
+{
+  "response": "[\n  {\n    \"sub_question\": \"Which three characters are shown entering the doorway marked 'DANGER KEEP OUT!'?\",\n    \"visual_evidence_plan\": \"Examine frames around 0:27-0:54; identify the characters present at the doorway using their distinct appearances (e.g., pink elephant, blue figure with glasses, yellow figure).\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What is the visual sequence of transformations the characters undergo after entering the doorway?\",\n    \"visual_evidence_plan\": \"Inspect frames from 0:54 to 2:10; observe the progression from dark fragmented shapes (0:54-1:21) to broken pieces (1:48) to geometric figures (2:16) to wavy lines (2:43).\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What transport-related cue appears for their original route target after they emerge from the doorway?\",\n    \"visual_evidence_plan\": \"Examine frames around 2:43-3:10; identify any visual cues indicating a route or destination (e.g., direction, path, symbol).\",\n    \"web_evidence_plan\": \"\"\n  },\n  {\n    \"sub_question\": \"What is the original route target they were trying to use to return to another location?\",\n    \"visual_evidence_plan\": \"Use the transport-related cue identified in the previous sub-question as an anchor; verify if it corresponds to a known destination in the film's plot.\",\n    \"web_evidence_plan\": \"Inside Out 2 core memory island return route\"\n  },\n  {\n    \"sub_question\": \"In the sequel, what memory-generated belief structure did the original characters maintain in that location?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Inside Out 2 core memory island belief structure\"\n  },\n  {\n    \"sub_question\": \"What core belief did that structure initially express?\",\n    \"visual_evidence_plan\": \"\",\n    \"web_evidence_plan\": \"Inside Out 2 core memory island initial belief\"\n  }\n]",
+  "sub_questions": [
+    {
+      "text": "Which three characters are shown entering the doorway marked 'DANGER KEEP OUT!'?",
+      "visual_evidence_plan": "Examine frames around 0:27-0:54; identify the characters present at the doorway using their distinct appearances (e.g., pink elephant, blue figure with glasses, yellow figure).",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the visual sequence of transformations the characters undergo after entering the doorway?",
+      "visual_evidence_plan": "Inspect frames from 0:54 to 2:10; observe the progression from dark fragmented shapes (0:54-1:21) to broken pieces (1:48) to geometric figures (2:16) to wavy lines (2:43).",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What transport-related cue appears for their original route target after they emerge from the doorway?",
+      "visual_evidence_plan": "Examine frames around 2:43-3:10; identify any visual cues indicating a route or destination (e.g., direction, path, symbol).",
+      "web_evidence_plan": "",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What is the original route target they were trying to use to return to another location?",
+      "visual_evidence_plan": "Use the transport-related cue identified in the previous sub-question as an anchor; verify if it corresponds to a known destination in the film's plot.",
+      "web_evidence_plan": "Inside Out 2 core memory island return route",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "In the sequel, what memory-generated belief structure did the original characters maintain in that location?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Inside Out 2 core memory island belief structure",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    },
+    {
+      "text": "What core belief did that structure initially express?",
+      "visual_evidence_plan": "",
+      "web_evidence_plan": "Inside Out 2 core memory island initial belief",
+      "visual_evidence": [],
+      "web_evidence": [],
+      "answer": "",
+      "sufficient": false
+    }
+  ]
+}

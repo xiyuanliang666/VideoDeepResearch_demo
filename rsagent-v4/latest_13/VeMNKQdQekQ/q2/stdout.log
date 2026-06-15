@@ -1,0 +1,17 @@
+Sampling 8 overview frames...
+  -> 8 frames extracted
+Running visual preprocessing...
+  -> 8 scenes identified
+  -> OCR enabled: True; YOLO enabled: True
+Running pipeline (max_rounds=6)...
+
+========================================================================
+FINAL ANSWER
+========================================================================
+Final answer: The social event that forced Vincent van Gogh out of his residence was the violent argument with Paul Gauguin on December 23, 1888, which led to van Gogh cutting off his own ear, resulting in his hospitalization and removal from the Yellow House in Arles.
+
+Evidence basis: The flashback segment visually shows "HOTEL TANGUY," historically linked to Julien-François Tanguy, a paint dealer in Paris associated with van Gogh (video evidence). The main person discussed is Vincent van Gogh, identified through visual cues (beard, straw hat, Van Gogh-style paintings) and confirmed by web evidence from the film *Loving Vincent*. Web evidence confirms van Gogh left Paris for Arles in 1888 and was forced out of his residence due to the December 23, 1888 argument with Gauguin, culminating in the ear-cutting incident, which led to his hospitalization.
+
+Limitations: None. All sub-questions are supported with high confidence, and the evidence is consistent and sufficient to answer the question definitively.
+
+Trace saved to: /tmp/rsagent-v4/runs/latest_13/VeMNKQdQekQ/q2/

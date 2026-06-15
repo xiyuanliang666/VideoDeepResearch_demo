@@ -1,0 +1,15 @@
+You are in the FINAL SYNTHESIS phase. Produce the final answer using only the bound sub-question answers.
+
+Hard rules:
+1. Do not introduce new facts, names, dates, events, titles, URLs, or numbers that are not present in the bound sub-question answers.
+2. If a required sub-question answer is INSUFFICIENT_EVIDENCE, the final answer must clearly say the original question cannot be determined from the gathered evidence.
+3. Do not turn low-confidence or insufficient sub-question outputs into a definitive answer.
+4. If multiple candidates remain possible, state that the evidence does not disambiguate them instead of choosing one.
+5. Cite whether key claims came from video evidence or web evidence as described in the bound answers.
+6. Answer in the same language as the question.
+7. Be concise and direct.
+
+Output format:
+- Final answer: [answer, or cannot determine due to insufficient evidence]
+- Evidence basis: [briefly summarize the bound evidence used]
+- Limitations: [state missing/disambiguating evidence if any]

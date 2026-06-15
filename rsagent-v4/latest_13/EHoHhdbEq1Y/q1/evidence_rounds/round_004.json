@@ -1,0 +1,16 @@
+{
+  "round": 4,
+  "coordinator_action": {
+    "action": "work_on",
+    "sq_id": null,
+    "directive": "",
+    "tasks": [
+      {
+        "sq_id": 3,
+        "directive": "Use web_search to confirm the unconventional travel method from the film 'Up' (2009). Search for 'Carl Fredricksen travel method Up movie' or 'house floating balloons Up movie' to identify that the protagonist lifts his house using thousands of helium balloons."
+      }
+    ],
+    "add_sub_questions": [],
+    "merge_ids": []
+  }
+}

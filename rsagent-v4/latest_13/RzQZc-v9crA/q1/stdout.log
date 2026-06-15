@@ -1,0 +1,15 @@
+Sampling 8 overview frames...
+  -> 8 frames extracted
+Running visual preprocessing...
+  -> 8 scenes identified
+  -> OCR enabled: True; YOLO enabled: True
+Running pipeline (max_rounds=6)...
+
+========================================================================
+FINAL ANSWER
+========================================================================
+- Final answer: The worldwide gross of the 2018 European crime animated feature film *Ruben Brandt, Collector*, heavily influenced by the Cubist style pioneered by Pablo Picasso and co-founded with Georges Braque, is $218,184 according to Box Office Mojo, using the film's country of origin (Hungary) as the source.  
+- Evidence basis: The video frames show three characters (Bing Bong, Joy, Sadness) entering a door and passing through abstract scenes involving geometric fragmentation and reassembly into symbolic forms, visually resembling Cubism. Web evidence identifies Pablo Picasso as the pioneer of this style and Georges Braque as his co-founder. The 2018 European crime animated film *Ruben Brandt, Collector* is confirmed as being heavily influenced by Cubism. Box Office Mojo data for the film, sourced from its country of origin (Hungary), reports a worldwide gross of $218,184.  
+- Limitations: None. All sub-questions are fully supported with high-confidence evidence, and no disambiguation or missing data remains.
+
+Trace saved to: /tmp/rsagent-v4/runs/latest_13/RzQZc-v9crA/q1/
